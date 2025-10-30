@@ -2,6 +2,9 @@ package com.realestate.real_estate_management.service;
 
 import com.realestate.real_estate_management.entity.User;
 import com.realestate.real_estate_management.repository.UserRepository;
+
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -22,7 +25,9 @@ public class UserService {
 
     public User findUserByEmail(String email) {
     // Assuming you still have the findByEmail method in your UserRepository
-    return userRepository.findByEmail(email);
-}
-    
+        return userRepository.findByEmail(email);
+    }
+    public List<User> findAllUsers() {
+        return userRepository.findAll();
+    }
 }

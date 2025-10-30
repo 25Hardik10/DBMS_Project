@@ -30,30 +30,20 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
                 
-                // --- PUBLIC ENDPOINTS ---
-                // Public Read Access for Properties and Search
-                .requestMatchers("/api/properties/all", "/api/properties/search").permitAll()
-                .requestMatchers("/api/properties/{id}").permitAll()
-                .requestMatchers("/api/properties/{propertyId}/images").permitAll() // View images is public
+                // ... (all public and role-specific endpoints remain)
+                .requestMatchers("/api/sellers/my-properties").hasAuthority(UserRoles.ROLE_SELLER)
+                .requestMatchers("/api/buyers/my-purchases").hasAuthority(UserRoles.ROLE_BUYER)
+                .requestMatchers("/api/tenants/my-leases").hasAuthority(UserRoles.ROLE_TENANT)
 
-                // Public Registration Endpoints
-                .requestMatchers("/api/users", "/api/sellers", "/api/buyers", "/api/tenants").permitAll()
-                
-                // --- AUTHORIZED ENDPOINTS ---
-                // Only Sellers can POST a new property (Flat, Land, Commercial, etc.)
-                .requestMatchers("/api/flats", "/api/lands", "/api/commercials", "/api/rentals", "/api/colivings").hasAuthority(UserRoles.ROLE_SELLER)
-                
-                // Only Sellers can update their properties
-                .requestMatchers("/api/flats/**", "/api/lands/**", "/api/commercials/**", "/api/rentals/**", "/api/colivings/**").hasAuthority(UserRoles.ROLE_SELLER)
-
-                // Only any authenticated user can post a review
                 .requestMatchers("/api/properties/{propertyId}/reviews").authenticated()
-                .requestMatchers("/api/properties/{propertyId}/images").authenticated() // Posting an image requires login
+                .requestMatchers("/api/properties/{propertyId}/images").authenticated() 
 
-                // Only Admin can DELETE properties/users
-                .requestMatchers("/api/properties/{id}", "/api/users/{id}").hasAuthority(UserRoles.ROLE_ADMIN)
+                // --- ADMIN ENDPOINTS ---
+                .requestMatchers("/api/properties/{id}").hasAuthority(UserRoles.ROLE_ADMIN)
+                .requestMatchers("/api/users/{id}").hasAuthority(UserRoles.ROLE_ADMIN)
+                .requestMatchers("/api/users/all").hasAuthority(UserRoles.ROLE_ADMIN) // <-- SECURE NEW ENDPOINT
+                // --- END ADMIN ENDPOINTS ---
 
-                // Require login for everything else (e.g., PUT methods for Buyer/Tenant, general user endpoints)
                 .anyRequest().authenticated() 
             )
             .userDetailsService(customUserDetailsService) 

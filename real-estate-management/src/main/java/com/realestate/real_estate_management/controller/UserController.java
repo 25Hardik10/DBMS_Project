@@ -10,7 +10,8 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.http.ResponseEntity; 
 import org.springframework.http.HttpStatus; 
 import org.springframework.web.bind.annotation.GetMapping; 
-import java.security.Principal; 
+import java.security.Principal;
+import java.util.List; 
 
 
 @RestController
@@ -43,5 +44,10 @@ public class UserController {
         
         // Returns the full User object (including the role via inheritance)
         return ResponseEntity.ok(user);
+    }
+    @GetMapping("/all")
+    public ResponseEntity<List<User>> getAllUsers() {
+        // Security for this endpoint is handled in SecurityConfig
+        return ResponseEntity.ok(userService.findAllUsers());
     }
 }

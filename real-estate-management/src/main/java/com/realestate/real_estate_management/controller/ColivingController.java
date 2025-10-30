@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
+import java.security.Principal; // <-- Import Principal
 
 @RestController
 @RequestMapping("/api/colivings")
@@ -18,11 +19,13 @@ public class ColivingController {
     @Autowired
     private ColivingService ColivingService;
 
+    // --- UPDATED METHOD ---
     @PostMapping
-    public Coliving createColiving(@RequestBody Coliving coliving) {
+    public Coliving createColiving(@RequestBody Coliving coliving, Principal principal) {
         coliving.setPropertyType("Coliving");
-        return ColivingService.saveColiving(coliving);
+        return ColivingService.saveColiving(coliving, principal);
     }
+    // --- END UPDATED METHOD ---
 
     @PutMapping("/{id}")
     public ResponseEntity<Coliving> updateColiving(@PathVariable Long id, @RequestBody Coliving ColivingDetails) {

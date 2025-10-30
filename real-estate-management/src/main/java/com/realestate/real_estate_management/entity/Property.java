@@ -1,6 +1,7 @@
 package com.realestate.real_estate_management.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import jakarta.persistence.CascadeType; // <-- Add this import
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -9,9 +10,11 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany; // <-- Add this import
 import jakarta.persistence.Table;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.List; // <-- Add this import
 import jakarta.persistence.Inheritance; 
 import jakarta.persistence.InheritanceType; 
 
@@ -57,8 +60,19 @@ public class Property {
     @JoinColumn(name = "OwnedBy", nullable = false)
     private Seller seller;
 
+    // --- NEW RELATIONSHIP FIELD ---
+    /**
+     * This links to the 'property' field in the Amenity entity.
+     * CascadeType.ALL means if a property is deleted, its amenities are also deleted.
+     */
+    @OneToMany(mappedBy = "property", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<Amenity> amenities;
+    // --- END NEW FIELD ---
+
     public Property() {
     }
+
+    // --- Standard Getters and Setters below ---
 
     public Long getPropertyId() {
         return propertyId;
@@ -148,4 +162,13 @@ public class Property {
         this.seller = seller;
     }
 
+    // --- GETTER AND SETTER FOR NEW FIELD ---
+    public List<Amenity> getAmenities() {
+        return amenities;
+    }
+
+    public void setAmenities(List<Amenity> amenities) {
+        this.amenities = amenities;
+    }
+    // --- END GETTER AND SETTER ---
 }

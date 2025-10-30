@@ -7,8 +7,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList; // <-- Add this import
-import java.util.List; 
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -17,9 +18,6 @@ public class PropertyService {
     @Autowired
     private PropertyRepository propertyRepository;
 
-    // We no longer need to autowire PropertySpecification
-    // since we are calling its static methods.
-
     public List<Property> getAllProperties() {
         return propertyRepository.findAll();
     }
@@ -27,15 +25,20 @@ public class PropertyService {
     /**
      * Searches for properties based on dynamic criteria.
      * @param city Optional city to filter by.
-     * @param propertyType Optional property type (e.g., "Flat", "Land") to filter by.
+     ** @param propertyType Optional property type (e.g., "Flat", "Land") to filter by.
+     * @param minPrice Optional minimum price to filter by.
+     * @param maxPrice Optional maximum price to filter by.
+     * @param amenities Optional list of amenities the property must have.
      * @return A list of matching properties.
      */
-    public List<Property> searchProperties(String city, String propertyType) {
+    public List<Property> searchProperties(String city, 
+                                           String propertyType, 
+                                           BigDecimal minPrice, 
+                                           BigDecimal maxPrice,
+                                           List<String> amenities) { // <-- Add this parameter
         
-        // 1. Create a list to hold our "LEGO blocks"
         List<Specification<Property>> specs = new ArrayList<>();
 
-        // 2. Add specifications to the list only if the parameter is present
         if (city != null && !city.isEmpty()) {
             specs.add(PropertySpecification.hasCity(city));
         }
@@ -43,9 +46,18 @@ public class PropertyService {
         if (propertyType != null && !propertyType.isEmpty()) {
             specs.add(PropertySpecification.hasType(propertyType));
         }
+        
+        if (minPrice != null || maxPrice != null) {
+            specs.add(PropertySpecification.hasPriceBetween(minPrice, maxPrice));
+        }
 
-        // 3. Combine all specifications in the list with an "AND" operator
-        // Specification.allOf() is the modern replacement for where(null).and()...
+        // --- NEW BLOCK ---
+        // Add the amenities filter
+        if (amenities != null && !amenities.isEmpty()) {
+            specs.add(PropertySpecification.hasAmenities(amenities));
+        }
+        // --- END NEW BLOCK ---
+
         return propertyRepository.findAll(Specification.allOf(specs));
     }
     // ------------------------------------------
@@ -70,5 +82,9 @@ public class PropertyService {
                 existingProperty.setDescription(propertyDetails.getDescription());
                 return propertyRepository.save(existingProperty);
             });
+    }
+
+    public List<Property> getPropertiesBySellerEmail(String email) {
+        return propertyRepository.findBySeller_Email(email);
     }
 }

@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import java.security.Principal; // <-- Import Principal
 
 @RestController
 @RequestMapping("/api/commercials")
@@ -18,11 +19,13 @@ public class CommercialController {
     @Autowired
     private CommercialService commercialService;
 
+    // --- UPDATED METHOD ---
     @PostMapping
-    public Commercial createCommercial(@RequestBody Commercial commercial) {
+    public Commercial createCommercial(@RequestBody Commercial commercial, Principal principal) {
         commercial.setPropertyType("Commercial");;
-        return commercialService.saveCommercial(commercial);
+        return commercialService.saveCommercial(commercial, principal);
     }
+    // --- END UPDATED METHOD ---
 
     
     @PutMapping("/{id}")

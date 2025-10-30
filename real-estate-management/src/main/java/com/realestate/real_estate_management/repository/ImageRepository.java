@@ -6,6 +6,13 @@ import java.util.List;
 
 public interface ImageRepository extends JpaRepository<Image, Long> {
     
-    // Custom method to fetch all images associated with a specific property ID
-    List<Image> findByProperty_PropertyId(Long propertyId);
+    // --- UPDATED METHOD ---
+    /**
+     * Custom method to fetch all images associated with a specific property ID,
+     * automatically sorted by the 'imageOrder' field in ascending order.
+     * @param propertyId The ID of the property.
+     * @return A list of images, sorted by imageOrder.
+     */
+    List<Image> findByProperty_PropertyIdOrderByImageOrderAsc(Long propertyId);
+    // --- END UPDATED METHOD ---
 }

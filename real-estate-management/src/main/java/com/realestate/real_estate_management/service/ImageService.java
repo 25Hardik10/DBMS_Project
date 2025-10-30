@@ -20,8 +20,9 @@ public class ImageService {
 
     /**
      * Creates and saves a new image for a property.
+     * The request body should now include 'imageOrder'.
      * @param propertyId The ID of the property to link the image to.
-     * @param image The Image entity from the request body.
+     * @param image The Image entity from the request body (with url, caption, and imageOrder).
      * @return The saved Image entity.
      */
     public Image saveImage(Long propertyId, Image image) {
@@ -30,6 +31,7 @@ public class ImageService {
                 .orElseThrow(() -> new RuntimeException("Property not found with id: " + propertyId));
         
         // 2. Set the relationship fields and the required UploadDate
+        // 'imageOrder' is set automatically from the request body
         image.setProperty(property);
         image.setUploadDate(LocalDate.now());
 
@@ -38,11 +40,14 @@ public class ImageService {
     }
     
     /**
-     * Retrieves all images for a given property ID.
+     * Retrieves all images for a given property ID, sorted by their order.
      * @param propertyId The ID of the property.
-     * @return A list of images for that property.
+     * @return A sorted list of images for that property.
      */
     public List<Image> getImagesByPropertyId(Long propertyId) {
-        return imageRepository.findByProperty_PropertyId(propertyId);
+        // --- UPDATED METHOD CALL ---
+        // Call the new repository method that handles sorting
+        return imageRepository.findByProperty_PropertyIdOrderByImageOrderAsc(propertyId);
+        // --- END UPDATED METHOD CALL ---
     }
 }

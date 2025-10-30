@@ -30,12 +30,12 @@
 
         <div class="card p-3 mb-4 shadow-sm">
             <form id="searchForm">
-                <div class="row g-3 align-items-end">
+                <div class="row g-3">
                     <div class="col-md-6">
                         <label for="city" class="form-label">City Name</label>
                         <input type="text" id="city" placeholder="e.g., Mumbai, Pune" name="city" class="form-control">
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-6">
                         <label for="type" class="form-label">Property Type</label>
                         <select id="type" name="type" class="form-select">
                             <option value="">-- All Types --</option>
@@ -46,13 +46,44 @@
                             <option value="Coliving">CoLiving</option>
                         </select>
                     </div>
-                    <div class="col-md-2">
+
+                    <div class="col-md-6">
+                        <label for="minPrice" class="form-label">Min Price</label>
+                        <input type="number" id="minPrice" placeholder="e.g., 5000000" name="minPrice" class="form-control">
+                    </div>
+                    <div class="col-md-6">
+                        <label for="maxPrice" class="form-label">Max Price</label>
+                        <input type="number" id="maxPrice" placeholder="e.g., 10000000" name="maxPrice" class="form-control">
+                    </div>
+                </div>
+
+                <div class="row g-3 mt-2">
+                    <label class="form-label mb-0">Amenities (Must have all selected):</label>
+                    <div class="col-auto">
+                        <input type="checkbox" class="form-check-input amenity-check" value="Gym" id="checkGym">
+                        <label class="form-check-label" for="checkGym">Gym</label>
+                    </div>
+                    <div class="col-auto">
+                        <input type="checkbox" class="form-check-input amenity-check" value="Pool" id="checkPool">
+                        <label class="form-check-label" for="checkPool">Pool</label>
+                    </div>
+                    <div class="col-auto">
+                        <input type="checkbox" class="form-check-input amenity-check" value="Parking" id="checkParking">
+                        <label class="form-check-label" for="checkParking">Parking</label>
+                    </div>
+                    <div class="col-auto">
+                        <input type="checkbox" class="form-check-input amenity-check" value="Lift" id="checkLift">
+                        <label class="form-check-label" for="checkLift">Lift</label>
+                    </div>
+                </div>
+
+                <div class="row mt-3">
+                    <div class="col-12">
                         <button type="submit" class="btn btn-primary w-100">Search</button>
                     </div>
                 </div>
             </form>
         </div>
-
         <div class="row row-cols-1 row-cols-md-3 g-4" id="listings">
             <div class="col"><p>Loading properties...</p></div>
         </div>
@@ -66,10 +97,25 @@
         if (!credentials) {
             authLinks.innerHTML = '<a href="/login" class="btn btn-success btn-sm me-2">Login</a><a href="/register" class="btn btn-outline-light btn-sm">Register</a>';
         } else {
-            authLinks.innerHTML = `
-                <a href="/upload" class="btn btn-warning btn-sm me-2">Upload Property</a>
-                <a href="/profile" class="btn btn-info btn-sm me-2">Profile</a>
-                <button onclick="logout()" class="btn btn-danger btn-sm">Logout</button>`;
+            // --- UPDATED NAVBAR LOGIC ---
+            // We must fetch the user's role to show the admin link
+            fetch('http://localhost:8080/api/users/me', {
+                headers: { 'Authorization': 'Basic ' + credentials }
+            })
+            .then(res => res.ok ? res.json() : null)
+            .then(user => {
+                let adminLink = '';
+                if (user && user.adminPrivileges) {
+                    adminLink = '<a href="/admin" class="btn btn-danger btn-sm me-2">Admin Panel</a>';
+                }
+
+                authLinks.innerHTML = `
+                    ${adminLink}
+                    <a href="/upload" class="btn btn-warning btn-sm me-2">Upload Property</a>
+                    <a href="/profile" class="btn btn-info btn-sm me-2">Profile</a>
+                    <button onclick="logout()" class="btn btn-secondary btn-sm">Logout</button>`;
+            });
+            // --- END UPDATED NAVBAR LOGIC ---
         }
 
         function logout() {
@@ -77,10 +123,31 @@
             window.location.href = '/login';
         }
 
-        function loadProperties(city = '', type = '') {
-            const url = `http://localhost:8080/api/properties/search?city=${city}&type=${type}`;
+        /**
+         * Loads properties based on a dynamic set of filters.
+         */
+        function loadProperties(filters) {
             const listingsDiv = document.getElementById('listings');
             listingsDiv.innerHTML = ''; 
+
+            // Create a URLSearchParams object to dynamically build the query string
+            const params = new URLSearchParams();
+            
+            if (filters.city) params.append('city', filters.city);
+            if (filters.type) params.append('type', filters.type);
+            if (filters.minPrice) params.append('minPrice', filters.minPrice);
+            if (filters.maxPrice) params.append('maxPrice', filters.maxPrice);
+            
+            // Add each selected amenity as a separate 'amenity' parameter
+            if (filters.amenities && filters.amenities.length > 0) {
+                filters.amenities.forEach(amenity => {
+                    params.append('amenity', amenity);
+                });
+            }
+
+            // Construct the final URL
+            const url = `http://localhost:8080/api/properties/search?${params.toString()}`;
+            console.log("Fetching:", url); // Good for debugging
 
             fetch(url)
                 .then(response => response.json())
@@ -116,12 +183,31 @@
 
         document.getElementById('searchForm').addEventListener('submit', function(event) {
             event.preventDefault();
+            
+            // Get values from all form fields
             const city = document.getElementById('city').value;
             const type = document.getElementById('type').value;
-            loadProperties(city, type);
+            const minPrice = document.getElementById('minPrice').value;
+            const maxPrice = document.getElementById('maxPrice').value;
+
+            // Get all checked amenity values
+            const amenities = [];
+            document.querySelectorAll('.amenity-check:checked').forEach(checkbox => {
+                amenities.push(checkbox.value);
+            });
+
+            // Pass all filters as an object
+            loadProperties({
+                city: city,
+                type: type,
+                minPrice: minPrice,
+                maxPrice: maxPrice,
+                amenities: amenities
+            });
         });
 
-        loadProperties();
+        // Initial load (with no filters)
+        loadProperties({});
     </script>
-</body>
+    </body>
 </html>

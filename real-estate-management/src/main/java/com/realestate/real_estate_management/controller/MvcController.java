@@ -35,4 +35,8 @@ public class MvcController {
     public String profile() {
         return "profile"; 
     }
+    @GetMapping("/admin")
+    public String adminPanel() {
+        return "admin"; // This will serve admin.html
+    }
 }

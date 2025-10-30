@@ -5,4 +5,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface SellerRepository extends JpaRepository<Seller, Long> {
     
+    // Allows service layer to find the Seller by their unique email
+    Seller findByEmail(String email);
 }

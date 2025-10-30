@@ -10,7 +10,7 @@
         <a href="/" class="btn btn-outline-secondary btn-sm mb-3">← Back Home</a>
         <h1 class="mb-4">Your Profile & Status</h1>
         
-        <div class="card shadow-lg">
+        <div class="card shadow-lg mb-4">
             <div class="card-header bg-info text-white">Account Information</div>
             <div class="card-body">
                 <div id="profileDetails">
@@ -22,11 +22,25 @@
                 <a href="/register" class="btn btn-warning">Edit Profile (Coming Soon)</a>
             </div>
         </div>
-    </div>
+
+        <div class="card shadow-lg">
+            <div class="card-header" id="dynamicHeader">My Data</div>
+            <div class="card-body">
+                <div id="dynamicContent">
+                    <p class="text-muted">Loading specific data based on your role...</p>
+                </div>
+            </div>
+        </div>
+        </div>
 
     <script>
         const credentials = localStorage.getItem('user_credentials');
         const profileDetailsDiv = document.getElementById('profileDetails');
+        
+        // --- NEW ELEMENT SELECTORS ---
+        const dynamicHeader = document.getElementById('dynamicHeader');
+        const dynamicContent = document.getElementById('dynamicContent');
+        // --- END NEW ---
 
         if (!credentials) {
             window.location.href = '/login'; // Redirect if not logged in
@@ -39,42 +53,124 @@
 
         function loadProfileData() {
             fetch('http://localhost:8080/api/users/me', {
-                method: 'GET',
-                headers: {
-                    'Authorization': 'Basic ' + credentials
-                }
+                // ... (fetch options)
             })
             .then(response => {
-                if (response.status === 401 || response.status === 403) {
-                    profileDetailsDiv.innerHTML = '<p class="text-danger">Session expired or unauthorized. Please log in again.</p>';
-                    return Promise.reject('Auth Failed');
-                }
+                // ... (error handling)
                 return response.json();
             })
             .then(user => {
                 let userRole = 'User';
                 let badgeClass = 'bg-secondary';
-                
-                if (user.sellerType) { userRole = 'Seller'; badgeClass = 'bg-warning'; }
-                else if (user.budget && user.preferredLocation) { userRole = 'Buyer'; badgeClass = 'bg-success'; }
-                else if (user.leaseTerm) { userRole = 'Tenant'; badgeClass = 'bg-info'; }
-                else if (user.adminPrivileges) { userRole = 'Admin'; badgeClass = 'bg-danger'; }
+                let roleKey = null; 
+                let adminLink = ''; // <-- New variable
 
+                if (user.sellerType) { 
+                    // ... (seller logic)
+                    roleKey = 'seller';
+                }
+                // ... (buyer logic)
+                // ... (tenant logic)
+                else if (user.adminPrivileges) { 
+                    userRole = 'Admin'; 
+                    badgeClass = 'bg-danger'; 
+                    roleKey = 'admin';
+                    // --- ADD ADMIN LINK ---
+                    adminLink = '<a href="/admin" class="btn btn-danger">Go to Admin Panel</a>';
+                    // --- END ADD ---
+                }
 
                 profileDetailsDiv.innerHTML = `
                     <p><strong>Name:</strong> ${user.firstName} ${user.lastName}</p>
                     <p><strong>Email:</strong> ${user.email}</p>
                     <p><strong>Mobile:</strong> ${user.mobile}</p>
                     <p><strong>Role:</strong> <span class="badge ${badgeClass} fs-6">${userRole}</span></p>
-                    <hr>
+                    ${adminLink} <hr>
                     <p class="small text-muted">Account created on: ${user.createdOn}</p>
                 `;
+
+                loadDynamicData(roleKey);
             })
             .catch(error => {
                 console.error('Error fetching profile:', error);
                 if (error !== 'Auth Failed') {
                     profileDetailsDiv.innerHTML = '<p class="text-danger">Failed to connect to the profile service.</p>';
                 }
+            });
+        }
+
+        /**
+         * Fetches and renders role-specific data (e.g., seller's properties)
+         */
+        function loadDynamicData(roleKey) {
+            let endpoint = '';
+            let header = '';
+            let renderFunc = null;
+
+            switch(roleKey) {
+                case 'seller':
+                    endpoint = 'http://localhost:8080/api/sellers/my-properties';
+                    header = 'My Listed Properties';
+                    renderFunc = (data) => `
+                        <ul class="list-group">
+                            ${data.map(prop => `
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    <a href="/details?id=${prop.propertyId}">${prop.city} - ${prop.address}</a>
+                                    <span class="badge bg-primary">${prop.propertyStatus}</span>
+                                </li>`).join('')}
+                        </ul>
+                    `;
+                    break;
+                case 'buyer':
+                    endpoint = 'http://localhost:8080/api/buyers/my-purchases';
+                    header = 'My Purchase History';
+                    renderFunc = (data) => `
+                        <ul class="list-group">
+                            ${data.map(buy => `
+                                <li class="list-group-item">
+                                    Purchased Property ID: <a href="/details?id=${buy.property.propertyId}">${buy.property.propertyId}</a> 
+                                    on ${buy.buyingDate} for ₹${buy.amount}
+                                </li>`).join('')}
+                        </ul>
+                    `;
+                    break;
+                case 'tenant':
+                    endpoint = 'http://localhost:8080/api/tenants/my-leases';
+                    header = 'My Lease History';
+                    renderFunc = (data) => `
+                        <ul class="list-group">
+                            ${data.map(lease => `
+                                <li class="list-group-item">
+                                    Leased Property ID: <a href="/details?id=${lease.property.propertyId}">${lease.property.propertyId}</a> 
+                                    from ${lease.startDate} to ${lease.endDate}
+                                </li>`).join('')}
+                        </ul>
+                    `;
+                    break;
+                default:
+                    dynamicHeader.textContent = 'No Data';
+                    dynamicContent.innerHTML = '<p class="text-muted">No specific data to show for this role.</p>';
+                    return;
+            }
+
+            dynamicHeader.textContent = header;
+            dynamicContent.innerHTML = '<p>Loading...</p>';
+
+            fetch(endpoint, {
+                method: 'GET',
+                headers: { 'Authorization': 'Basic ' + credentials }
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.length === 0) {
+                    dynamicContent.innerHTML = `<p class="text-muted">No data found.</p>`;
+                    return;
+                }
+                dynamicContent.innerHTML = renderFunc(data);
+            })
+            .catch(err => {
+                console.error('Error fetching dynamic data:', err);
+                dynamicContent.innerHTML = '<p class="text-danger">Failed to load data.</p>';
             });
         }
 
