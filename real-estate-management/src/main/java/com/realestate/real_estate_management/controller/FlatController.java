@@ -20,6 +20,7 @@ public class FlatController {
 
     @PostMapping
     public Flat createFlat(@RequestBody Flat flat) {
+        flat.setPropertyType("Flat");
         return flatService.saveFlat(flat);
     }
 

@@ -15,6 +15,7 @@ public class FlatService {
     public Flat saveFlat(Flat flat) {
         return flatRepository.save(flat);
     }
+    
     public Optional<Flat> updateFlat(Long id, Flat flatDetails) {
         return flatRepository.findById(id)
             .map(existingFlat -> {

@@ -1,7 +1,7 @@
 package com.realestate.real_estate_management.controller;
 
-import com.realestate.real_estate_management.entity.Land;
-import com.realestate.real_estate_management.service.LandService;
+import com.realestate.real_estate_management.entity.Rental;
+import com.realestate.real_estate_management.service.RentalService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -12,22 +12,22 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
 
 @RestController
-@RequestMapping("/api/lands")
-public class LandController {
+@RequestMapping("/api/rentals")
+public class RentalController {
 
     @Autowired
-    private LandService landService;
+    private RentalService RentalService;
 
     @PostMapping
-    public Land createLand(@RequestBody Land land) {
-        land.setPropertyType("Land");
-        return landService.saveLand(land);
+    public Rental createRental(@RequestBody Rental rental) {
+        rental.setPropertyType("Rental");
+        return RentalService.saveRental(rental);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Land> updateLand(@PathVariable Long id, @RequestBody Land landDetails) {
-        return landService.updateLand(id, landDetails)
-                .map(updatedLand -> ResponseEntity.ok(updatedLand)) // 200 OK
+    public ResponseEntity<Rental> updateRental(@PathVariable Long id, @RequestBody Rental RentalDetails) {
+        return RentalService.updateRental(id, RentalDetails)
+                .map(updatedRental -> ResponseEntity.ok(updatedRental)) // 200 OK
                 .orElse(ResponseEntity.notFound().build()); // 404 Not Found
     }
 }
