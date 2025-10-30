@@ -19,5 +19,10 @@ public class UserService {
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         return userRepository.save(user);
     }
+
+    public User findUserByEmail(String email) {
+    // Assuming you still have the findByEmail method in your UserRepository
+    return userRepository.findByEmail(email);
+}
     
 }

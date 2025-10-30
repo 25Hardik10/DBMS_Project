@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Property Search</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        /* Elegant Hover Effect for Property Cards */
+        .card-hover-effect:hover {
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.2) !important;
+            transform: translateY(-5px);
+            cursor: pointer;
+        }
+        .card-hover-effect {
+            transition: all 0.3s ease-in-out;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/">RealEstate Hub</a>
+            <div class="d-flex" id="authLinks">
+                </div>
+        </div>
+    </nav>
+    
+    <main class="container mt-4">
+        <h1 class="mb-4">Global Listings</h1>
+
+        <div class="card p-3 mb-4 shadow-sm">
+            <form id="searchForm">
+                <div class="row g-3 align-items-end">
+                    <div class="col-md-6">
+                        <label for="city" class="form-label">City Name</label>
+                        <input type="text" id="city" placeholder="e.g., Mumbai, Pune" name="city" class="form-control">
+                    </div>
+                    <div class="col-md-4">
+                        <label for="type" class="form-label">Property Type</label>
+                        <select id="type" name="type" class="form-select">
+                            <option value="">-- All Types --</option>
+                            <option value="Flat">Flat</option>
+                            <option value="Land">Land</option>
+                            <option value="Commercial">Commercial</option>
+                            <option value="Rental">Rental</option>
+                            <option value="Coliving">CoLiving</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <button type="submit" class="btn btn-primary w-100">Search</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <div class="row row-cols-1 row-cols-md-3 g-4" id="listings">
+            <div class="col"><p>Loading properties...</p></div>
+        </div>
+    </main>
+
+    <script>
+        const credentials = localStorage.getItem('user_credentials');
+        const authLinks = document.getElementById('authLinks');
+        
+        // Populate Navbar Links based on login status
+        if (!credentials) {
+            authLinks.innerHTML = '<a href="/login" class="btn btn-success btn-sm me-2">Login</a><a href="/register" class="btn btn-outline-light btn-sm">Register</a>';
+        } else {
+            authLinks.innerHTML = `
+                <a href="/upload" class="btn btn-warning btn-sm me-2">Upload Property</a>
+                <a href="/profile" class="btn btn-info btn-sm me-2">Profile</a>
+                <button onclick="logout()" class="btn btn-danger btn-sm">Logout</button>`;
+        }
+
+        function logout() {
+            localStorage.removeItem('user_credentials');
+            window.location.href = '/login';
+        }
+
+        function loadProperties(city = '', type = '') {
+            const url = `http://localhost:8080/api/properties/search?city=${city}&type=${type}`;
+            const listingsDiv = document.getElementById('listings');
+            listingsDiv.innerHTML = ''; 
+
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.length === 0) {
+                        listingsDiv.innerHTML = '<div class="col"><p>No properties found matching your criteria.</p></div>';
+                        return;
+                    }
+                    data.forEach(property => {
+                        listingsDiv.innerHTML += `
+                            <div class="col">
+                                <div class="card h-100 shadow-sm card-hover-effect">
+                                    <div class="card-body">
+                                        <span class="badge bg-primary">${property.propertyType}</span>
+                                        <h5 class="card-title mt-2">${property.city} - ${property.state}</h5>
+                                        <h6 class="card-subtitle mb-2 text-success">₹${property.price.toLocaleString('en-IN')}</h6>
+                                        <p class="card-text">${property.description.substring(0, 70)}...</p>
+                                        <a href="/details?id=${property.propertyId}" class="btn btn-outline-secondary btn-sm">View Details</a>
+                                    </div>
+                                    <div class="card-footer">
+                                        <small class="text-muted">Listed by: ${property.seller.email}</small>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                })
+                .catch(error => {
+                    listingsDiv.innerHTML = '<div class="col"><p class="text-danger">Failed to load properties.</p></div>';
+                    console.error('Error:', error);
+                });
+        }
+
+        document.getElementById('searchForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const city = document.getElementById('city').value;
+            const type = document.getElementById('type').value;
+            loadProperties(city, type);
+        });
+
+        loadProperties();
+    </script>
+</body>
+</html>

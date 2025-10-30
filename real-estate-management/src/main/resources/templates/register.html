@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Register - Real Estate</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>body { background-color: #f8f9fa; }</style>
+</head>
+<body>
+    <div class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <div class="card shadow-lg">
+                    <div class="card-header bg-success text-white text-center">
+                        <h4 class="mb-0">Create New Account</h4>
+                    </div>
+                    <div class="card-body p-4">
+                        <form id="registerForm">
+                            <div class="mb-3">
+                                <label for="userType" class="form-label">I want to register as a:</label>
+                                <select id="userType" class="form-select" required>
+                                    <option value="sellers">Seller</option>
+                                    <option value="buyers">Buyer</option>
+                                    <option value="tenants">Tenant</option>
+                                </select>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col">
+                                    <label for="firstName" class="form-label">First Name</label>
+                                    <input type="text" id="firstName" class="form-control" required>
+                                </div>
+                                <div class="col">
+                                    <label for="lastName" class="form-label">Last Name</label>
+                                    <input type="text" id="lastName" class="form-control" required>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="email" class="form-label">Email</label>
+                                <input type="email" id="email" class="form-control" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="mobile" class="form-label">Mobile</label>
+                                <input type="text" id="mobile" class="form-control" maxlength="10" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="password" class="form-label">Password</label>
+                                <input type="password" id="password" class="form-control" required>
+                            </div>
+
+                            <button type="submit" class="btn btn-success w-100">Register</button>
+                            <p id="message" class="mt-3 text-center"></p>
+                        </form>
+                    </div>
+                    <div class="card-footer text-center">
+                        <small class="text-muted">Already have an account? <a href="/login">Sign In</a></small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('registerForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            
+            const userType = document.getElementById('userType').value;
+            const endpoint = `http://localhost:8080/api/${userType}`;
+
+            const basePayload = {
+                "firstName": document.getElementById('firstName').value,
+                "lastName": document.getElementById('lastName').value,
+                "email": document.getElementById('email').value,
+                "mobile": document.getElementById('mobile').value,
+                "password": document.getElementById('password').value,
+                "createdOn": new Date().toISOString().split('T')[0]
+            };
+
+            let specificFields = {};
+            switch(userType) {
+                case 'sellers':
+                    specificFields = { "sellerType": "Individual" };
+                    break;
+                case 'buyers':
+                    specificFields = { "budget": 1000000, "preferredLocation": "Any" };
+                    break;
+                case 'tenants':
+                    specificFields = { "budget": 500, "leaseTerm": 6, "employmentStatus": true };
+                    break;
+            }
+
+            const finalPayload = { ...basePayload, ...specificFields };
+            const message = document.getElementById('message');
+
+            fetch(endpoint, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(finalPayload)
+            })
+            .then(response => {
+                if (response.ok) {
+                    message.textContent = `Registration successful! Redirecting to login.`;
+                    message.className = 'mt-3 text-success';
+                    setTimeout(() => {
+                        window.location.href = '/login';
+                    }, 1500);
+                } else if (response.status === 409) {
+                    message.textContent = 'Registration failed: Email or Mobile already in use.';
+                    message.className = 'mt-3 text-danger';
+                } else {
+                    message.textContent = `Registration failed. Status: ${response.status}.`;
+                    message.className = 'mt-3 text-danger';
+                }
+            })
+            .catch(error => {
+                message.textContent = 'Network error during registration.';
+                message.className = 'mt-3 text-danger';
+                console.error('Error:', error);
+            });
+        });
+    </script>
+</body>
+</html>
