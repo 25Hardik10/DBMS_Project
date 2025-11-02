@@ -18,8 +18,13 @@
                 </div>
             </div>
             <div class="card-footer d-flex justify-content-between">
-                <button onclick="logout()" class="btn btn-danger">Logout</button>
-                <a href="/register" class="btn btn-warning">Edit Profile (Coming Soon)</a>
+                <div>
+                    <button onclick="logout()" class="btn btn-danger">Logout</button>
+                </div>
+                <div>
+                    <a href="/edit-profile" class="btn btn-warning me-2">Edit Profile</a>
+                    <button onclick="deleteProfile()" class="btn btn-outline-danger">Delete Profile</button>
+                    </div>
             </div>
         </div>
 
@@ -31,72 +36,129 @@
                 </div>
             </div>
         </div>
-        </div>
+    </div>
 
     <script>
-        const credentials = localStorage.getItem('user_credentials');
+        // --- FIX: REMOVED all 'credentials' and 'localStorage' variables ---
         const profileDetailsDiv = document.getElementById('profileDetails');
-        
-        // --- NEW ELEMENT SELECTORS ---
         const dynamicHeader = document.getElementById('dynamicHeader');
         const dynamicContent = document.getElementById('dynamicContent');
-        // --- END NEW ---
-
-        if (!credentials) {
-            window.location.href = '/login'; // Redirect if not logged in
-        }
 
         function logout() {
-            localStorage.removeItem('user_credentials');
-            window.location.href = '/login';
+            // This function POSTs to the /logout endpoint
+            fetch('/logout', { method: 'POST' })
+                .then(() => {
+                    window.location.href = '/login'; // Redirect to login
+                })
+                .catch(err => {
+                    console.error('Logout error:', err);
+                    window.location.href = '/login'; // Redirect anyway
+                });
+        }
+        function deleteProperty(id) {
+            const confirmed = confirm("Are you sure you want to delete this property? This is permanent.");
+            if (!confirmed) {
+                return;
+            }
+
+            fetch(`/api/properties/my-properties/${id}`, {
+                method: 'DELETE'
+            })
+            .then(response => {
+                if (response.ok) {
+                    alert('Property deleted successfully.');
+                    // Reload all data to refresh the list
+                    loadProfileData();
+                } else if (response.status === 403) {
+                    alert('Error: You do not have permission to delete this.');
+                } else {
+                    alert('Error: Could not delete property.');
+                }
+            })
+            .catch(err => {
+                console.error('Delete property error:', err);
+                alert('A network error occurred.');
+            });
+        }
+        function deleteProfile() {
+            const confirmed = confirm("Are you sure you want to delete your profile? This action is permanent and cannot be undone.");
+            
+            if (confirmed) {
+                fetch('/api/users/me', {
+                    method: 'DELETE'
+                })
+                .then(response => {
+                    if (response.ok) {
+                        alert('Profile deleted successfully. You will now be logged out.');
+                        // Call logout to clear the session
+                        logout();
+                    } else {
+                        alert('Error: Could not delete profile.');
+                    }
+                })
+                .catch(err => {
+                    console.error('Delete error:', err);
+                    alert('A network error occurred.');
+                });
+            }
         }
 
         function loadProfileData() {
-            fetch('http://localhost:8080/api/users/me', {
-                // ... (fetch options)
-            })
-            .then(response => {
-                // ... (error handling)
-                return response.json();
-            })
-            .then(user => {
-                let userRole = 'User';
-                let badgeClass = 'bg-secondary';
-                let roleKey = null; 
-                let adminLink = ''; // <-- New variable
+            // --- FIX: No 'credentials' needed. The cookie is sent automatically. ---
+            fetch('http://localhost:8080/api/users/me')
+                .then(response => {
+                    if (!response.ok) {
+                        // If not OK, the session is invalid or expired.
+                        throw new Error('Auth Failed');
+                    }
+                    return response.json();
+                })
+                .then(user => {
+                    let userRole = 'User';
+                    let badgeClass = 'bg-secondary';
+                    let roleKey = null; 
+                    let adminLink = '';
 
-                if (user.sellerType) { 
-                    // ... (seller logic)
-                    roleKey = 'seller';
-                }
-                // ... (buyer logic)
-                // ... (tenant logic)
-                else if (user.adminPrivileges) { 
-                    userRole = 'Admin'; 
-                    badgeClass = 'bg-danger'; 
-                    roleKey = 'admin';
-                    // --- ADD ADMIN LINK ---
-                    adminLink = '<a href="/admin" class="btn btn-danger">Go to Admin Panel</a>';
-                    // --- END ADD ---
-                }
+                    // This logic for determining role is correct
+                    if (user.sellerType) { 
+                        userRole = 'Seller'; 
+                        badgeClass = 'bg-success'; 
+                        roleKey = 'seller';
+                    } else if (user.preferredLocation) { 
+                        userRole = 'Buyer'; 
+                        badgeClass = 'bg-info'; 
+                        roleKey = 'buyer';
+                    } else if (user.leaseTerm) { 
+                        userRole = 'Tenant'; 
+                        badgeClass = 'bg-primary'; 
+                        roleKey = 'tenant';
+                    } else if (user.adminPrivileges) { 
+                        userRole = 'Admin'; 
+                        badgeClass = 'bg-danger'; 
+                        roleKey = 'admin';
+                        adminLink = '<a href="/admin" class="btn btn-danger">Go to Admin Panel</a>';
+                    }
 
-                profileDetailsDiv.innerHTML = `
-                    <p><strong>Name:</strong> ${user.firstName} ${user.lastName}</p>
-                    <p><strong>Email:</strong> ${user.email}</p>
-                    <p><strong>Mobile:</strong> ${user.mobile}</p>
-                    <p><strong>Role:</strong> <span class="badge ${badgeClass} fs-6">${userRole}</span></p>
-                    ${adminLink} <hr>
-                    <p class="small text-muted">Account created on: ${user.createdOn}</p>
-                `;
+                    profileDetailsDiv.innerHTML = `
+                        <p><strong>Name:</strong> ${user.firstName} ${user.lastName}</p>
+                        <p><strong>Email:</strong> ${user.email}</p>
+                        <p><strong>Mobile:</strong> ${user.mobile}</p>
+                        <p><strong>Role:</strong> <span class="badge ${badgeClass} fs-6">${userRole}</span></p>
+                        ${adminLink} <hr>
+                        <p class="small text-muted">Account created on: ${user.createdOn}</p>
+                    `;
 
-                loadDynamicData(roleKey);
-            })
-            .catch(error => {
-                console.error('Error fetching profile:', error);
-                if (error !== 'Auth Failed') {
-                    profileDetailsDiv.innerHTML = '<p class="text-danger">Failed to connect to the profile service.</p>';
-                }
-            });
+                    loadDynamicData(roleKey);
+                })
+                .catch(error => {
+                    console.error('Error fetching profile:', error);
+                    if (error.message === 'Auth Failed') {
+                        // If auth fails, redirect to login
+                        window.location.href = '/login';
+                    } else {
+                        profileDetailsDiv.innerHTML = '<p class="text-danger">Failed to connect to the profile service.</p>';
+                    }
+                });
         }
 
         /**
@@ -115,8 +177,14 @@
                         <ul class="list-group">
                             ${data.map(prop => `
                                 <li class="list-group-item d-flex justify-content-between align-items-center">
-                                    <a href="/details?id=${prop.propertyId}">${prop.city} - ${prop.address}</a>
-                                    <span class="badge bg-primary">${prop.propertyStatus}</span>
+                                    <div>
+                                        <a href="/details?id=${prop.propertyId}">${prop.city} - ${prop.address}</a>
+                                        <span class="badge bg-primary ms-2">${prop.propertyStatus}</span>
+                                    </div>
+                                    <div>
+                                        <a href="/edit-property?id=${prop.propertyId}" class="btn btn-sm btn-outline-warning me-2">Update</a>
+                                        <button class="btn btn-sm btn-outline-danger" onclick="deleteProperty(${prop.propertyId})">Delete</button>
+                                    </div>
                                 </li>`).join('')}
                         </ul>
                     `;
@@ -156,24 +224,23 @@
             dynamicHeader.textContent = header;
             dynamicContent.innerHTML = '<p>Loading...</p>';
 
-            fetch(endpoint, {
-                method: 'GET',
-                headers: { 'Authorization': 'Basic ' + credentials }
-            })
-            .then(res => res.json())
-            .then(data => {
-                if (data.length === 0) {
-                    dynamicContent.innerHTML = `<p class="text-muted">No data found.</p>`;
-                    return;
-                }
-                dynamicContent.innerHTML = renderFunc(data);
-            })
-            .catch(err => {
-                console.error('Error fetching dynamic data:', err);
-                dynamicContent.innerHTML = '<p class="text-danger">Failed to load data.</p>';
-            });
+            // --- FIX: This fetch no longer needs to send 'credentials' ---
+            fetch(endpoint) // The browser will send the cookie automatically
+                .then(res => res.json())
+                .then(data => {
+                    if (data.length === 0) {
+                        dynamicContent.innerHTML = `<p class="text-muted">No data found.</p>`;
+                        return;
+                    }
+                    dynamicContent.innerHTML = renderFunc(data);
+                })
+                .catch(err => {
+                    console.error('Error fetching dynamic data:', err);
+                    dynamicContent.innerHTML = '<p class="text-danger">Failed to load data.</p>';
+                });
         }
 
+        // --- This is the only call needed to start the page ---
         loadProfileData();
     </script>
 </body>

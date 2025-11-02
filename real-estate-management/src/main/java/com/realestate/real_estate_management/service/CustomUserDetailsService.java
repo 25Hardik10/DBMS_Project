@@ -6,7 +6,7 @@ import com.realestate.real_estate_management.entity.Seller;
 import com.realestate.real_estate_management.entity.Tenant;
 import com.realestate.real_estate_management.entity.User;
 import com.realestate.real_estate_management.repository.UserRepository;
-import com.realestate.real_estate_management.security.UserRoles; // <-- Import new roles class
+import com.realestate.real_estate_management.security.UserRoles; 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -14,11 +14,13 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collection;
 import java.util.Collections;
 
 @Service
+@Transactional
 public class CustomUserDetailsService implements UserDetailsService {
 
     @Autowired
@@ -33,7 +35,6 @@ public class CustomUserDetailsService implements UserDetailsService {
             throw new UsernameNotFoundException("User not found with email: " + username);
         }
 
-        // --- Logic to determine the role ---
         String role = determineRole(user);
 
         Collection<? extends GrantedAuthority> authorities = 
@@ -42,7 +43,7 @@ public class CustomUserDetailsService implements UserDetailsService {
         return new org.springframework.security.core.userdetails.User(
             user.getEmail(),          
             user.getPassword(),       
-            authorities             // Pass the determined role here
+            authorities   
         );
     }
 

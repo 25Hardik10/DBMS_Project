@@ -15,7 +15,8 @@
                         <h4 class="mb-0">Secure Login</h4>
                     </div>
                     <div class="card-body p-4">
-                        <form id="loginForm">
+
+                        <form id="loginForm" action="/login" method="POST">
                             <div class="mb-3">
                                 <label for="email" class="form-label">Email (Username)</label>
                                 <input type="email" id="email" name="email" class="form-control" required>
@@ -25,8 +26,10 @@
                                 <input type="password" id="password" name="password" class="form-control" required>
                             </div>
                             <button type="submit" class="btn btn-primary w-100">Sign In</button>
-                            <p id="message" class="mt-3 text-center"></p>
+                            
+                            <p id="message" class="mt-3 text-center text-danger"></p>
                         </form>
+                        
                     </div>
                     <div class="card-footer text-center">
                         <small class="text-muted">Don't have an account? <a href="/register">Register Here</a></small>
@@ -37,39 +40,13 @@
     </div>
 
     <script>
-        document.getElementById('loginForm').addEventListener('submit', function(event) {
-            event.preventDefault();
+        window.addEventListener('load', function() {
+            const params = new URLSearchParams(window.location.search);
             
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
-            const message = document.getElementById('message');
-            
-            const credentials = btoa(email + ":" + password);
-
-            fetch('http://localhost:8080/api/properties/all', {
-                method: 'GET',
-                headers: {
-                    'Authorization': 'Basic ' + credentials
-                }
-            })
-            .then(response => {
-                if (response.ok) {
-                    localStorage.setItem('user_credentials', credentials);
-                    message.textContent = 'Login successful! Redirecting...';
-                    message.classList.remove('text-danger');
-                    message.classList.add('text-success');
-                    window.location.href = '/'; 
-                } else {
-                    message.textContent = 'Login failed. Check credentials.';
-                    message.classList.add('text-danger');
-                    message.classList.remove('text-success');
-                }
-            })
-            .catch(error => {
-                message.textContent = 'Network error.';
-                message.classList.add('text-danger');
-                console.error('Error:', error);
-            });
+            // If the URL has "?error=true" (from our SecurityConfig)
+            if (params.has('error')) {
+                document.getElementById('message').textContent = 'Login failed. Check credentials.';
+            }
         });
     </script>
 </body>

@@ -54,88 +54,89 @@
     </div>
 
     <script>
-        const credentials = localStorage.getItem('user_credentials');
+        // --- FIX: REMOVED 'credentials' variable ---
         const adminCheckDiv = document.getElementById('adminCheck');
         const adminContentDiv = document.getElementById('adminContent');
 
-        if (!credentials) {
-            window.location.href = '/login'; // Redirect if not logged in
-        }
-
+        // --- FIX: No 'credentials' check. We fetch '/api/users/me' directly. ---
         // 1. Verify user is an ADMIN first
-        fetch('http://localhost:8080/api/users/me', {
-            headers: { 'Authorization': 'Basic ' + credentials }
-        })
-        .then(res => {
-            if (!res.ok) return Promise.reject('Auth failed');
-            return res.json();
-        })
-        .then(user => {
-            // Check for the 'adminPrivileges' field
-            if (user.adminPrivileges) {
-                adminCheckDiv.innerHTML = '<p class="alert alert-success">Admin role verified. Loading data...</p>';
-                adminContentDiv.style.display = 'block';
-                // 2. Load admin data
-                loadAllProperties();
-                loadAllUsers();
-            } else {
-                adminCheckDiv.innerHTML = '<p class="alert alert-danger">Access Denied. You are not an Admin.</p>';
-            }
-        })
-        .catch(() => {
-            adminCheckDiv.innerHTML = '<p class="alert alert-danger">Session expired. Please <a href="/login">log in</a>.</p>';
-        });
+        fetch('http://localhost:8080/api/users/me') // Browser sends cookie
+            .then(res => {
+                if (!res.ok) {
+                    // Not logged in or session expired
+                    window.location.href = '/login'; // Redirect if not logged in
+                    return Promise.reject('Auth failed');
+                }
+                return res.json();
+            })
+            .then(user => {
+                // Check for the 'adminPrivileges' field
+                if (user.adminPrivileges) {
+                    adminCheckDiv.innerHTML = '<p class="alert alert-success">Admin role verified. Loading data...</p>';
+                    adminContentDiv.style.display = 'block';
+                    // 2. Load admin data
+                    loadAllProperties();
+                    loadAllUsers();
+                } else {
+                    adminCheckDiv.innerHTML = '<p class="alert alert-danger">Access Denied. You are not an Admin.</p>';
+                }
+            })
+            .catch((err) => {
+                // Handle fetch failure (e.g., auth failed)
+                if (err !== 'Auth failed') {
+                    console.error('Error:', err);
+                    adminCheckDiv.innerHTML = '<p class="alert alert-danger">Could not verify session. Please <a href="/login">log in</a>.</p>';
+                }
+            });
 
         // 3. Load All Properties
         function loadAllProperties() {
             const propertyList = document.getElementById('propertyList');
-            fetch('http://localhost:8080/api/properties/all', {
-                headers: { 'Authorization': 'Basic ' + credentials }
-            })
-            .then(res => res.json())
-            .then(properties => {
-                propertyList.innerHTML = properties.map(prop => `
-                    <tr id="prop-row-${prop.propertyId}">
-                        <td>${prop.propertyId}</td>
-                        <td>${prop.propertyType}</td>
-                        <td>${prop.city}, ${prop.state}</td>
-                        <td>₹${prop.price.toLocaleString('en-IN')}</td>
-                        <td>${prop.propertyStatus}</td>
-                        <td>
-                            <button class_name="btn btn-danger btn-sm" onclick="deleteProperty(${prop.propertyId})">
-                                Delete
-                            </button>
-                        </td>
-                    </tr>
-                `).join('');
-            });
+            // --- FIX: Removed 'headers' object ---
+            fetch('http://localhost:8080/api/properties/all')
+                .then(res => res.json())
+                .then(properties => {
+                    propertyList.innerHTML = properties.map(prop => `
+                        <tr id="prop-row-${prop.propertyId}">
+                            <td>${prop.propertyId}</td>
+                            <td>${prop.propertyType}</td>
+                            <td>${prop.city}, ${prop.state}</td>
+                            <td>₹${prop.price.toLocaleString('en-IN')}</td>
+                            <td>${prop.propertyStatus}</td>
+                            <td>
+                                <button class="btn btn-danger btn-sm" onclick="deleteProperty(${prop.propertyId})">
+                                    Delete
+                                </button>
+                            </td>
+                        </tr>
+                    `).join('');
+                });
         }
 
         // 4. Load All Users
         function loadAllUsers() {
             const userList = document.getElementById('userList');
-            fetch('http://localhost:8080/api/users/all', {
-                headers: { 'Authorization': 'Basic ' + credentials }
-            })
-            .then(res => res.json())
-            .then(users => {
-                userList.innerHTML = users.map(user => {
-                    let role = 'User';
-                    if (user.sellerType) role = 'Seller';
-                    else if (user.preferredLocation) role = 'Buyer';
-                    else if (user.leaseTerm) role = 'Tenant';
-                    else if (user.adminPrivileges) role = 'Admin';
-                    
-                    return `
-                        <tr>
-                            <td>${user.userId}</td>
-                            <td>${user.firstName} ${user.lastName}</td>
-                            <td>${user.email}</td>
-                            <td>${role}</td>
-                        </tr>
-                    `;
-                }).join('');
-            });
+            // --- FIX: Removed 'headers' object ---
+            fetch('http://localhost:8080/api/users/all')
+                .then(res => res.json())
+                .then(users => {
+                    userList.innerHTML = users.map(user => {
+                        let role = 'User';
+                        if (user.sellerType) role = 'Seller';
+                        else if (user.preferredLocation) role = 'Buyer';
+                        else if (user.leaseTerm) role = 'Tenant';
+                        else if (user.adminPrivileges) role = 'Admin';
+                        
+                        return `
+                            <tr>
+                                <td>${user.userId}</td>
+                                <td>${user.firstName} ${user.lastName}</td>
+                                <td>${user.email}</td>
+                                <td>${role}</td>
+                            </tr>
+                        `;
+                    }).join('');
+                });
         }
 
         // 5. Delete Property Function
@@ -144,9 +145,9 @@
                 return;
             }
 
+            // --- FIX: Removed 'headers' object ---
             fetch(`http://localhost:8080/api/properties/${id}`, {
-                method: 'DELETE',
-                headers: { 'Authorization': 'Basic ' + credentials }
+                method: 'DELETE'
             })
             .then(response => {
                 if (response.ok) {

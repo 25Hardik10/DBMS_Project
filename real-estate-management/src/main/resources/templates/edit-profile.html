@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Edit Profile</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .role-specific-fields { display: none; }
+    </style>
+</head>
+<body>
+    <div class="container mt-4">
+        <a href="/profile" class="btn btn-outline-secondary btn-sm mb-3">← Back to Profile</a>
+        <h1 class="mb-4">Edit Your Profile</h1>
+
+        <div class="card shadow-lg">
+            <div class="card-body p-4">
+                <form id="editForm">
+                    <h5 class="border-bottom pb-2">Common Details</h5>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="firstName" class="form-label">First Name</label>
+                            <input type="text" id="firstName" class="form-control" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="lastName" class="form-label">Last Name</label>
+                            <input type="text" id="lastName" class="form-control" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="email" class="form-label">Email</label>
+                            <input type="email" id="email" class="form-control" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="mobile" class="form-label">Mobile</label>
+                            <input type="text" id="mobile" class="form-control" required>
+                        </div>
+                        <div class="col-12">
+                            <label for="password" class="form-label">New Password (Optional)</label>
+                            <input type="password" id="password" class="form-control" placeholder="Leave blank to keep current password">
+                        </div>
+                    </div>
+
+                    <div id="buyerFields" class="role-specific-fields mt-4">
+                        <h5 class="border-bottom pb-2">Buyer Preferences</h5>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="buyerBudget" class="form-label">Budget</label>
+                                <input type="number" id="buyerBudget" class="form-control">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="buyerLocation" class="form-label">Preferred Location</label>
+                                <input type="text" id="buyerLocation" class="form-control">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="sellerFields" class="role-specific-fields mt-4">
+                        <h5 class="border-bottom pb-2">Seller Details</h5>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="sellerType" class="form-label">Seller Type</label>
+                                <input type="text" id="sellerType" class="form-control">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div id="tenantFields" class="role-specific-fields mt-4">
+                        <h5 class="border-bottom pb-2">Tenant Preferences</h5>
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label for="tenantBudget" class="form-label">Budget</label>
+                                <input type="number" id="tenantBudget" class="form-control">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="tenantLeaseTerm" class="form-label">Lease Term (months)</label>
+                                <input type="number" id="tenantLeaseTerm" class="form-control">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="tenantEmpStatus" class="form-label">Employed</label>
+                                <select id="tenantEmpStatus" class="form-select">
+                                    <option value="true">Yes</option>
+                                    <option value="false">No</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-success w-100 mt-4">Save Changes</button>
+                    <p id="message" class="mt-3 text-center"></p>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables to store user data
+        let currentUser = null;
+        let userRole = null;
+        let userId = null;
+
+        const message = document.getElementById('message');
+        const editForm = document.getElementById('editForm');
+
+        // Form fields
+        const firstName = document.getElementById('firstName');
+        const lastName = document.getElementById('lastName');
+        const email = document.getElementById('email');
+        const mobile = document.getElementById('mobile');
+        
+        // Buyer fields
+        const buyerBudget = document.getElementById('buyerBudget');
+        const buyerLocation = document.getElementById('buyerLocation');
+        // Seller fields
+        const sellerType = document.getElementById('sellerType');
+        // Tenant fields
+        const tenantBudget = document.getElementById('tenantBudget');
+        const tenantLeaseTerm = document.getElementById('tenantLeaseTerm');
+        const tenantEmpStatus = document.getElementById('tenantEmpStatus');
+        const adminPrivileges = document.getElementById('adminPrivileges');
+
+        // 1. Load User Data on Page Load
+        window.addEventListener('load', function() {
+            fetch('http://localhost:8080/api/users/me')
+                .then(res => {
+                    if (!res.ok) { window.location.href = '/login'; return Promise.reject('Auth Failed'); }
+                    return res.json();
+                })
+                .then(user => {
+                    currentUser = user; // Save the full user object
+                    userId = user.userId;
+
+                    // Populate common fields
+                    firstName.value = user.firstName;
+                    lastName.value = user.lastName;
+                    email.value = user.email;
+                    mobile.value = user.mobile;
+
+                    // Show and populate role-specific fields
+                    if (user.preferredLocation) {
+                        userRole = 'buyers';
+                        document.getElementById('buyerFields').style.display = 'block';
+                        buyerBudget.value = user.budget;
+                        buyerLocation.value = user.preferredLocation;
+                    } else if (user.sellerType) {
+                        userRole = 'sellers';
+                        document.getElementById('sellerFields').style.display = 'block';
+                        sellerType.value = user.sellerType;
+                    } else if (user.leaseTerm) {
+                        userRole = 'tenants';
+                        document.getElementById('tenantFields').style.display = 'block';
+                        tenantBudget.value = user.budget;
+                        tenantLeaseTerm.value = user.leaseTerm;
+                        tenantEmpStatus.value = user.employmentStatus;
+                    } else if (user.adminPrivileges) {
+                        userRole = 'admins';
+                        document.getElementById('adminFields').style.display = 'block';
+                        adminPrivileges.value = user.adminPrivileges;
+                    }
+                })
+                .catch(err => {
+                    if (err !== 'Auth Failed') { message.textContent = 'Error loading user data.'; }
+                });
+        });
+
+        // 2. Handle Form Submit
+        editForm.addEventListener('submit', function(event) {
+            event.preventDefault();
+            message.textContent = 'Saving...';
+            message.className = 'mt-3 text-center text-info';
+
+            // Start with the original user object
+            let payload = { ...currentUser };
+
+            // Overwrite common fields
+            payload.firstName = firstName.value;
+            payload.lastName = lastName.value;
+            payload.email = email.value;
+            payload.mobile = mobile.value;
+
+            // Check if a new password was entered
+            const newPassword = document.getElementById('password').value;
+            if (newPassword && newPassword.length > 0) {
+                payload.password = newPassword;
+            } else {
+                // IMPORTANT: Send the old password back to the server
+                // Your backend expects a password, even if it's the old one.
+                // Or, if your backend handles a null password, you can send null.
+                // Based on your updateBuyer service, it's safer to just set it to null
+                // as your service only updates if it's not null.
+                payload.password = null; 
+            }
+
+            // Overwrite role-specific fields
+            if (userRole === 'buyers') {
+                payload.budget = buyerBudget.value;
+                payload.preferredLocation = buyerLocation.value;
+            } else if (userRole === 'sellers') {
+                payload.sellerType = sellerType.value;
+            } else if (userRole === 'tenants') {
+                payload.budget = tenantBudget.value;
+                payload.leaseTerm = tenantLeaseTerm.value;
+                payload.employmentStatus = tenantEmpStatus.value;
+            } else if (userRole === 'admins') {
+                payload.adminPrivileges = adminPrivileges.value;
+            }
+
+            const endpoint = `http://localhost:8080/api/${userRole}/${userId}`;
+
+            fetch(endpoint, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            })
+            .then(res => {
+                if (!res.ok) { return Promise.reject(`Server responded with ${res.status}`); }
+                return res.json();
+            })
+            .then(data => {
+                message.textContent = 'Profile updated successfully! Redirecting...';
+                message.className = 'mt-3 text-center text-success';
+                setTimeout(() => {
+                    window.location.href = '/profile';
+                }, 1500);
+            })
+            .catch(err => {
+                console.error('Update Error:', err);
+                message.textContent = 'Error updating profile. Please check console.';
+                message.className = 'mt-3 text-center text-danger';
+            });
+        });
+    </script>
+</body>
+</html>

@@ -56,6 +56,7 @@
                         <p id="actionMessage" class="mt-2 text-center small"></p>
                     </div>
                 </div>
+
                 <div class="card shadow-sm">
                     <div class="card-header">Post a Review (Authenticated)</div>
                     <div class="card-body">
@@ -78,16 +79,13 @@
     </div>
 
     <script>
-        const credentials = localStorage.getItem('user_credentials');
         const urlParams = new URLSearchParams(window.location.search);
         const propertyId = urlParams.get('id');
 
-        // --- NEW GLOBAL VARIABLES ---
         let currentUser = null;
         let currentProperty = null;
         const actionPanel = document.getElementById('actionPanel');
         const actionMessage = document.getElementById('actionMessage');
-        // --- END NEW ---
 
         if (!propertyId) {
             document.getElementById('propertyTitle').textContent = 'Error: Property ID Missing.';
@@ -96,38 +94,30 @@
             // Chain all our data loading
             loadAllData(propertyId);
             loadImages(propertyId);
-            setupReviewForm(propertyId);
+            
+            // --- FIX: This line is MOVED from here ---
+            // setupReviewForm(propertyId); 
         }
 
-        /**
-         * Fetches all necessary data (property details and user profile)
-         * before trying to render the action buttons.
-         */
         function loadAllData(id) {
-            // Fetch Property Details
             const propPromise = fetch(`http://localhost:8080/api/properties/${id}`)
                 .then(res => res.json());
 
-            // Fetch User Profile (if logged in)
-            let userPromise;
-            if (credentials) {
-                userPromise = fetch('http://localhost:8080/api/users/me', {
-                    headers: { 'Authorization': 'Basic ' + credentials }
-                }).then(res => res.ok ? res.json() : Promise.resolve(null)); // Don't fail if auth is bad
-            } else {
-                userPromise = Promise.resolve(null); // Not logged in
-            }
+            const userPromise = fetch('http://localhost:8080/api/users/me')
+                .then(res => res.ok ? res.json() : Promise.resolve(null))
+                .catch(() => Promise.resolve(null)); 
 
-            // Wait for both promises to finish
             Promise.all([propPromise, userPromise])
                 .then(([property, user]) => {
-                    // Save data globally
                     currentProperty = property;
-                    currentUser = user;
+                    currentUser = user; 
                     
-                    // Render the data
                     renderPropertyDetails(property);
                     renderActionButtons(property, user);
+
+                    // --- FIX: This line is MOVED HERE ---
+                    // Now, we call setupReviewForm *after* currentUser is set.
+                    setupReviewForm(property.propertyId); 
                 })
                 .catch(error => {
                     console.error("Error loading data:", error);
@@ -136,6 +126,7 @@
         }
 
         function renderPropertyDetails(property) {
+            // (This function is correct and remains unchanged)
             const detailsDiv = document.getElementById('propertyDetails');
             detailsDiv.innerHTML = `
                 <p><strong>Type:</strong> <span class="badge bg-secondary">${property.propertyType}</span></p>
@@ -148,10 +139,10 @@
         }
 
         function loadImages(id) {
+            // (This function is correct and remains unchanged)
             fetch(`http://localhost:8080/api/properties/${id}/images`)
                 .then(response => response.json())
                 .then(images => {
-                    // (This function remains unchanged)
                     const imageListDiv = document.getElementById('imageList');
                     if (images.length === 0) {
                         imageListDiv.innerHTML = '<p class="text-muted">No images uploaded yet.</p>';
@@ -166,58 +157,51 @@
                 });
         }
 
-        /**
-         * Decides which buttons to show based on user role and property status.
-         */
         function renderActionButtons(property, user) {
-            actionPanel.innerHTML = ''; // Clear "Loading..."
+            // (This function is correct and remains unchanged)
+            actionPanel.innerHTML = ''; 
 
-            // Case 1: Property is not available
-            if (property.propertyStatus !== 'Available') {
+            if (property.propertyStatus !== 'FOR_SALE' && property.propertyStatus !== 'FOR_RENT') {
                 actionPanel.innerHTML = `<p class="alert alert-dark">This property is ${property.propertyStatus} and not available for transactions.</p>`;
                 return;
             }
 
-            // Case 2: User is not logged in
             if (!user) {
                 actionPanel.innerHTML = '<p>Please <a href="/login" class="text-dark">log in</a> to perform actions.</p>';
                 return;
             }
 
-            // Case 3: User is a BUYER
-            if (user.preferredLocation) { // 'preferredLocation' is a Buyer-specific field
+            if (user.preferredLocation && property.propertyStatus === 'FOR_SALE') { 
                 actionPanel.innerHTML = '<button id="buyButton" class="btn btn-success w-100">Buy Now</button>';
                 document.getElementById('buyButton').addEventListener('click', handleBuy);
             }
-            // Case 4: User is a TENANT (and property is a rental type)
-            else if (user.leaseTerm && (property.propertyType === 'Rental' || property.propertyType === 'Coliving')) {
+            else if (user.leaseTerm && property.propertyStatus === 'FOR_RENT') {
                 actionPanel.innerHTML = `
                     <p>Enter Lease End Date (YYYY-MM-DD):</p>
                     <input type="date" id="leaseEndDate" class="form-control mb-2">
                     <button id="leaseButton" class="btn btn-info w-100">Lease Now</button>`;
                 document.getElementById('leaseButton').addEventListener('click', handleLease);
             }
-            // Case 5: User is a Seller or Admin
             else {
-                actionPanel.innerHTML = '<p class="small">Your account type (Seller/Admin) cannot perform transactions on this property.</p>';
+                let message = "Your account type (Seller/Admin) cannot perform transactions.";
+                if(user.preferredLocation && property.propertyStatus !== 'FOR_SALE') {
+                    message = "As a Buyer, you cannot lease this property.";
+                } else if (user.leaseTerm && property.propertyStatus !== 'FOR_RENT') {
+                    message = "As a Tenant, you cannot buy this property.";
+                }
+                actionPanel.innerHTML = `<p class="small">${message}</p>`;
             }
         }
 
         function handleBuy() {
+            // (This function is correct and remains unchanged)
             actionMessage.textContent = 'Processing purchase...';
             actionMessage.className = 'mt-2 text-center small text-info';
-            
-            const payload = {
-                "amount": currentProperty.price,
-                "modeOfPayment": "Online" // Hardcoded for simplicity
-            };
+            const payload = { "amount": currentProperty.price, "modeOfPayment": "Online" };
 
             fetch(`http://localhost:8080/api/properties/${propertyId}/bought`, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': 'Basic ' + credentials
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
             })
             .then(res => {
@@ -227,7 +211,6 @@
             .then(data => {
                 actionMessage.textContent = 'Success! Property purchased.';
                 actionMessage.className = 'mt-2 text-center small text-success';
-                // Reload data to show "Sold" status
                 loadAllData(propertyId);
             })
             .catch(err => {
@@ -237,28 +220,20 @@
         }
 
         function handleLease() {
+            // (This function is correct and remains unchanged)
             const endDate = document.getElementById('leaseEndDate').value;
             if (!endDate) {
                 actionMessage.textContent = 'Please select a lease end date.';
                 actionMessage.className = 'mt-2 text-center small text-danger';
                 return;
             }
-
             actionMessage.textContent = 'Processing lease...';
             actionMessage.className = 'mt-2 text-center small text-info';
-
-            const payload = {
-                "amount": currentProperty.price, // Assuming price is monthly rent
-                "endDate": endDate,
-                "modeOfPayment": "Online"
-            };
+            const payload = { "amount": currentProperty.price, "endDate": endDate, "modeOfPayment": "Online" };
 
             fetch(`http://localhost:8080/api/properties/${propertyId}/lease`, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': 'Basic ' + credentials
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
             })
             .then(res => {
@@ -268,7 +243,7 @@
             .then(data => {
                 actionMessage.textContent = 'Success! Property leased.';
                 actionMessage.className = 'mt-2 text-center small text-success';
-                loadAllData(propertyId); // Reload to show new status
+                loadAllData(propertyId); 
             })
             .catch(err => {
                 actionMessage.textContent = 'Lease failed. Already leased or error.';
@@ -277,18 +252,46 @@
         }
 
         function setupReviewForm(id) {
-            // (This function remains unchanged)
             const reviewForm = document.getElementById('reviewForm');
             const reviewMessage = document.getElementById('reviewMessage');
 
-            if (!credentials) {
+            // --- FIX: This check now correctly uses the global 'currentUser' ---
+            if (!currentUser) {
                 reviewForm.innerHTML = '<p class="text-danger">Please <a href="/login">log in</a> to post a review.</p>';
                 return;
             }
             
             reviewForm.addEventListener('submit', function(event) {
                 event.preventDefault();
-                // ... (rest of the review submit logic)
+                
+                const payload = {
+                    "rating": document.getElementById('rating').value,
+                    "comments": document.getElementById('comments').value
+                };
+
+                reviewMessage.textContent = "Submitting...";
+                reviewMessage.className = "mt-2 text-info";
+
+                fetch(`http://localhost:8080/api/properties/${id}/reviews`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                })
+                .then(res => {
+                    if (res.ok) {
+                        reviewMessage.textContent = "Review submitted successfully!";
+                        reviewMessage.className = "mt-2 text-success";
+                        reviewForm.reset();
+                    } else {
+                        reviewMessage.textContent = "Failed to submit review. You may have already reviewed this property.";
+                        reviewMessage.className = "mt-2 text-danger";
+                    }
+                })
+                .catch(err => {
+                    console.error('Review error:', err);
+                    reviewMessage.textContent = "Network error.";
+                    reviewMessage.className = "mt-2 text-danger";
+                });
             });
         }
     </script>

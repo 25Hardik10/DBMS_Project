@@ -1,13 +1,13 @@
 package com.realestate.real_estate_management.specification;
 
-import com.realestate.real_estate_management.entity.Amenity; // <-- Add this import
+import com.realestate.real_estate_management.entity.Amenity; 
 import com.realestate.real_estate_management.entity.Property;
-import jakarta.persistence.criteria.Join; // <-- Add this import
+import jakarta.persistence.criteria.Join; 
 import jakarta.persistence.criteria.Predicate;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 import java.math.BigDecimal;
-import java.util.List; // <-- Add this import
+import java.util.List; 
 
 @Component
 public class PropertySpecification {
@@ -17,7 +17,17 @@ public class PropertySpecification {
             if (city == null || city.isEmpty()) {
                 return criteriaBuilder.conjunction();
             }
-            return criteriaBuilder.equal(root.get("city"), city);
+            return criteriaBuilder.like(criteriaBuilder.lower(root.get("city")), "%" + city.toLowerCase() + "%");
+        };
+    }
+
+    public static Specification<Property> hasState(String state) {
+        return (root, query, criteriaBuilder) -> {
+            if (state == null || state.isEmpty()) {
+                return criteriaBuilder.conjunction();
+            }
+            // Use like for partial matching
+            return criteriaBuilder.like(criteriaBuilder.lower(root.get("state")), "%" + state.toLowerCase() + "%");
         };
     }
 
@@ -45,40 +55,27 @@ public class PropertySpecification {
         };
     }
 
-    // --- NEW METHOD ---
-    /**
-     * Creates a specification to find properties that have ALL specified amenities.
-     * @param amenities A list of amenity names (e.g., ["Gym", "Pool"]).
-     * @return A Specification for the query.
-     */
+    // --- FIX: This is now a "Match-Any" (OR) search ---
     public static Specification<Property> hasAmenities(List<String> amenities) {
         return (root, query, criteriaBuilder) -> {
-            // If the list is null or empty, do nothing
             if (amenities == null || amenities.isEmpty()) {
-                return criteriaBuilder.conjunction();
+                return criteriaBuilder.conjunction(); // Return all if no amenities are specified
             }
 
-            // We must use "distinct" to avoid duplicate properties
-            query.distinct(true);
+            // Use distinct to ensure we don't get duplicate properties
+            // if a property has multiple matching amenities
+            query.distinct(true); 
 
-            // Join the Property entity with its "amenities" collection
-            // This is joining on the 'amenities' field we just added to Property.java
+            // Join with the amenities table
             Join<Property, Amenity> amenityJoin = root.join("amenities");
 
-            // We need to build a list of predicates, one for each amenity
-            // This will find properties where an amenity name is IN our list
+            // Create an "IN" clause: ... WHERE amenity.amenityName IN ('Pool', 'Gym', ...)
             Predicate amenitiesInList = amenityJoin.get("amenityName").in(amenities);
 
-            // This part is the "magic":
-            // 1. We group by the property
-            // 2. We check that the COUNT of matching amenities
-            // 3. Is EQUAL to the number of amenities we're searching for
-            // This guarantees the property has *all* of them.
-            query.groupBy(root.get("propertyId"));
-            query.having(criteriaBuilder.equal(criteriaBuilder.count(amenityJoin), amenities.size()));
+            // We no longer need GROUP BY or HAVING
             
-            // The final query combines the "IN" clause with the "HAVING" clause
             return amenitiesInList;
         };
     }
+    // --- END FIX ---
 }

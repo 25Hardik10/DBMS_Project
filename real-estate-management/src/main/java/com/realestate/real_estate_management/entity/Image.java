@@ -29,10 +29,8 @@ public class Image {
     @Column(name = "Caption", length = 150)
     private String caption;
 
-    // --- NEW FIELD ---
-    @Column(name = "image_order") // Database column will be named 'image_order'
+    @Column(name = "image_order")
     private Integer imageOrder;
-    // --- END NEW FIELD ---
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "ImageOf", nullable = false)
@@ -41,7 +39,6 @@ public class Image {
     public Image() {
     }
 
-    // --- Standard Getters and Setters below ---
 
     public Long getImageId() {
         return imageId;
@@ -83,7 +80,6 @@ public class Image {
         this.property = property;
     }
 
-    // --- GETTER AND SETTER FOR NEW FIELD ---
     public Integer getImageOrder() {
         return imageOrder;
     }
@@ -91,5 +87,4 @@ public class Image {
     public void setImageOrder(Integer imageOrder) {
         this.imageOrder = imageOrder;
     }
-    // --- END GETTER AND SETTER ---
 }

@@ -18,24 +18,14 @@ public class LeaseController {
     @Autowired
     private LeaseService leaseService;
 
-    /**
-     * POST /api/properties/{propertyId}/lease
-     * Records a new lease transaction. (Requires authenticated user as Tenant)
-     * @param propertyId The ID of the rental property.
-     * @param lease The JSON payload.
-     * @param principal The authenticated user (Tenant).
-     * @return The created Lease object.
-     */
     @PostMapping("/properties/{propertyId}/lease")
     public ResponseEntity<Lease> createLease(
             @PathVariable Long propertyId,
             @RequestBody Lease lease,
             Principal principal) {
         
-        // The principal is the Tenant (Borrowed_By)
         String tenantEmail = principal.getName(); 
         
-        // Corrected method call: only three arguments are needed now
         Lease savedLease = leaseService.createLease(propertyId, tenantEmail, lease); 
         
         return ResponseEntity.ok(savedLease);

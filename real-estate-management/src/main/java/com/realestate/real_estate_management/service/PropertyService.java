@@ -1,37 +1,77 @@
 package com.realestate.real_estate_management.service;
 
 import com.realestate.real_estate_management.entity.Property;
+import com.realestate.real_estate_management.entity.Seller;
+import com.realestate.real_estate_management.repository.BoughtRepository;
+import com.realestate.real_estate_management.repository.ImageRepository;
+import com.realestate.real_estate_management.repository.LeaseRepository;
 import com.realestate.real_estate_management.repository.PropertyRepository;
+import com.realestate.real_estate_management.repository.ReviewRepository;
 import com.realestate.real_estate_management.specification.PropertySpecification;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.ResourceAccessException;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Objects;
 
 @Service
+@Transactional
 public class PropertyService {
 
     @Autowired
     private PropertyRepository propertyRepository;
+    @Autowired private ImageRepository imageRepository;
+    @Autowired private ReviewRepository reviewRepository;
+    @Autowired private BoughtRepository boughtRepository;
+    @Autowired private LeaseRepository leaseRepository;
+
+    public void deleteMyProperty(Long propertyId, String sellerEmail) {
+        // 1. Find the property
+        Property property = propertyRepository.findById(propertyId)
+                .orElseThrow(() -> new ResourceAccessException("Property not found with id: " + propertyId));
+
+        // 2. Check Ownership
+        if (!Objects.equals(property.getSeller().getEmail(), sellerEmail)) {
+            throw new AccessDeniedException("You do not have permission to delete this property.");
+        }
+
+        // 3. Delete it
+        deletePropertyAndDependencies(property);
+    }
+    
+    public void deletePropertyAndDependencies(Property property) {
+        // 1. Delete all child records that reference this property
+        // Note: Amenities are deleted by CascadeType.ALL on the Property entity
+        imageRepository.deleteAllByProperty(property);
+        reviewRepository.deleteAllByProperty(property);
+        boughtRepository.deleteAllByProperty(property);
+        leaseRepository.deleteAllByProperty(property);
+        
+        // 2. Delete the property itself (and its subclass entry)
+        propertyRepository.delete(property);
+    }
+    
+    // --- FIX: NEW METHOD FOR DELETING ALL OF A SELLER'S PROPERTIES ---
+    public void deleteAllPropertiesBySeller(Seller seller) {
+        List<Property> properties = propertyRepository.findBySeller_Email(seller.getEmail());
+        for (Property property : properties) {
+            deletePropertyAndDependencies(property);
+        }
+    }
 
     public List<Property> getAllProperties() {
         return propertyRepository.findAll();
     }
-
-    /**
-     * Searches for properties based on dynamic criteria.
-     * @param city Optional city to filter by.
-     ** @param propertyType Optional property type (e.g., "Flat", "Land") to filter by.
-     * @param minPrice Optional minimum price to filter by.
-     * @param maxPrice Optional maximum price to filter by.
-     * @param amenities Optional list of amenities the property must have.
-     * @return A list of matching properties.
-     */
+    
     public List<Property> searchProperties(String city, 
+                                           String state,
                                            String propertyType, 
                                            BigDecimal minPrice, 
                                            BigDecimal maxPrice,
@@ -39,28 +79,28 @@ public class PropertyService {
         
         List<Specification<Property>> specs = new ArrayList<>();
 
+        if (propertyType != null && !propertyType.isEmpty()) {
+            specs.add(PropertySpecification.hasType(propertyType));
+        }
+
         if (city != null && !city.isEmpty()) {
             specs.add(PropertySpecification.hasCity(city));
         }
 
-        if (propertyType != null && !propertyType.isEmpty()) {
-            specs.add(PropertySpecification.hasType(propertyType));
+        if (state != null && !state.isEmpty()) {
+            specs.add(PropertySpecification.hasState(state)); // Use the new spec
         }
         
         if (minPrice != null || maxPrice != null) {
             specs.add(PropertySpecification.hasPriceBetween(minPrice, maxPrice));
         }
 
-        // --- NEW BLOCK ---
-        // Add the amenities filter
         if (amenities != null && !amenities.isEmpty()) {
             specs.add(PropertySpecification.hasAmenities(amenities));
         }
-        // --- END NEW BLOCK ---
 
         return propertyRepository.findAll(Specification.allOf(specs));
     }
-    // ------------------------------------------
 
     public Property saveProperty(Property property) {
         return propertyRepository.save(property);

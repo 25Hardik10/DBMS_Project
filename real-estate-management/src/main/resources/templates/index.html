@@ -5,7 +5,6 @@
     <title>Property Search</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        /* Elegant Hover Effect for Property Cards */
         .card-hover-effect:hover {
             box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.2) !important;
             transform: translateY(-5px);
@@ -35,6 +34,10 @@
                         <label for="city" class="form-label">City Name</label>
                         <input type="text" id="city" placeholder="e.g., Mumbai, Pune" name="city" class="form-control">
                     </div>
+                    <div class="col-md-3">
+                        <label for="state" class="form-label">State</label>
+                        <input type="text" id="state" placeholder="e.g., Maharashtra" name="state" class="form-control">
+                    </div>
                     <div class="col-md-6">
                         <label for="type" class="form-label">Property Type</label>
                         <select id="type" name="type" class="form-select">
@@ -46,7 +49,6 @@
                             <option value="Coliving">CoLiving</option>
                         </select>
                     </div>
-
                     <div class="col-md-6">
                         <label for="minPrice" class="form-label">Min Price</label>
                         <input type="number" id="minPrice" placeholder="e.g., 5000000" name="minPrice" class="form-control">
@@ -84,70 +86,92 @@
                 </div>
             </form>
         </div>
+
         <div class="row row-cols-1 row-cols-md-3 g-4" id="listings">
             <div class="col"><p>Loading properties...</p></div>
         </div>
     </main>
 
     <script>
-        const credentials = localStorage.getItem('user_credentials');
         const authLinks = document.getElementById('authLinks');
         
-        // Populate Navbar Links based on login status
-        if (!credentials) {
-            authLinks.innerHTML = '<a href="/login" class="btn btn-success btn-sm me-2">Login</a><a href="/register" class="btn btn-outline-light btn-sm">Register</a>';
-        } else {
-            // --- UPDATED NAVBAR LOGIC ---
-            // We must fetch the user's role to show the admin link
-            fetch('http://localhost:8080/api/users/me', {
-                headers: { 'Authorization': 'Basic ' + credentials }
+        // --- THIS IS THE CORRECTED NAVBAR LOGIC ---
+        fetch('http://localhost:8080/api/users/me')
+            .then(res => {
+                if (res.ok) {
+                    return res.json(); // User is logged in
+                }
+                return null; // User is not logged in
             })
-            .then(res => res.ok ? res.json() : null)
             .then(user => {
-                let adminLink = '';
-                if (user && user.adminPrivileges) {
-                    adminLink = '<a href="/admin" class="btn btn-danger btn-sm me-2">Admin Panel</a>';
+                let navLinks = [];
+
+                if (user) {
+                    // --- LOGGED-IN STATE (ROLE-BASED) ---
+                    
+                    // 1. Add role-specific links
+                    if (user.adminPrivileges) {
+                        // ADMIN
+                        navLinks.push('<a href="/admin" class="btn btn-danger btn-sm me-2">Admin Panel</a>');
+                    }
+                    if (user.sellerType) {
+                        // SELLER
+                        navLinks.push('<a href="/upload" class="btn btn-warning btn-sm me-2">Upload Property</a>');
+                    }
+                    
+                    // 2. Add common logged-in links
+                    navLinks.push('<a href="/profile" class="btn btn-info btn-sm me-2">Profile</a>');
+                    navLinks.push('<button onclick="logout()" class="btn btn-secondary btn-sm">Logout</button>');
+
+                } else {
+                    // --- LOGGED-OUT STATE ---
+                    navLinks.push('<a href="/login" class="btn btn-success btn-sm me-2">Login</a>');
+                    navLinks.push('<a href="/register" class="btn btn-outline-light btn-sm">Register</a>');
                 }
 
-                authLinks.innerHTML = `
-                    ${adminLink}
-                    <a href="/upload" class="btn btn-warning btn-sm me-2">Upload Property</a>
-                    <a href="/profile" class="btn btn-info btn-sm me-2">Profile</a>
-                    <button onclick="logout()" class="btn btn-secondary btn-sm">Logout</button>`;
+                // 3. Render all the links
+                authLinks.innerHTML = navLinks.join('');
+            })
+            .catch(err => {
+                // Failsafe: If server is down, show logged-out state
+                console.error("Auth check failed:", err);
+                authLinks.innerHTML = '<a href="/login" class="btn btn-success btn-sm me-2">Login</a><a href="/register" class="btn btn-outline-light btn-sm">Register</a>';
             });
-            // --- END UPDATED NAVBAR LOGIC ---
-        }
+        // --- END OF CORRECTED NAVBAR LOGIC ---
+
 
         function logout() {
-            localStorage.removeItem('user_credentials');
-            window.location.href = '/login';
+            fetch('/logout', { method: 'POST' })
+                .then(() => {
+                    window.location.href = '/login';
+                })
+                .catch(err => {
+                    console.error('Logout error:', err);
+                    window.location.href = '/login';
+                });
         }
-
-        /**
-         * Loads properties based on a dynamic set of filters.
-         */
+        
+        // (The rest of your script for loadProperties and searchForm is correct and remains unchanged)
+        
         function loadProperties(filters) {
             const listingsDiv = document.getElementById('listings');
-            listingsDiv.innerHTML = ''; 
-
-            // Create a URLSearchParams object to dynamically build the query string
+            
             const params = new URLSearchParams();
             
             if (filters.city) params.append('city', filters.city);
+            if (filters.state) params.append('state', filters.state);
             if (filters.type) params.append('type', filters.type);
             if (filters.minPrice) params.append('minPrice', filters.minPrice);
             if (filters.maxPrice) params.append('maxPrice', filters.maxPrice);
             
-            // Add each selected amenity as a separate 'amenity' parameter
             if (filters.amenities && filters.amenities.length > 0) {
                 filters.amenities.forEach(amenity => {
                     params.append('amenity', amenity);
                 });
             }
 
-            // Construct the final URL
             const url = `http://localhost:8080/api/properties/search?${params.toString()}`;
-            console.log("Fetching:", url); // Good for debugging
+            console.log("Fetching:", url); 
 
             fetch(url)
                 .then(response => response.json())
@@ -156,6 +180,7 @@
                         listingsDiv.innerHTML = '<div class="col"><p>No properties found matching your criteria.</p></div>';
                         return;
                     }
+                    listingsDiv.innerHTML = ''; // Clear "Loading..."
                     data.forEach(property => {
                         listingsDiv.innerHTML += `
                             <div class="col">
@@ -184,22 +209,21 @@
         document.getElementById('searchForm').addEventListener('submit', function(event) {
             event.preventDefault();
             
-            // Get values from all form fields
-            const city = document.getElementById('city').value;
             const type = document.getElementById('type').value;
+            const city = document.getElementById('city').value;
+            const state = document.getElementById('state').value;
             const minPrice = document.getElementById('minPrice').value;
             const maxPrice = document.getElementById('maxPrice').value;
 
-            // Get all checked amenity values
             const amenities = [];
             document.querySelectorAll('.amenity-check:checked').forEach(checkbox => {
                 amenities.push(checkbox.value);
             });
 
-            // Pass all filters as an object
             loadProperties({
-                city: city,
                 type: type,
+                city: city,
+                state: state,
                 minPrice: minPrice,
                 maxPrice: maxPrice,
                 amenities: amenities

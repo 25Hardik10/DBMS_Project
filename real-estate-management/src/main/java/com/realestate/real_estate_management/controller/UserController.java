@@ -8,7 +8,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.http.ResponseEntity; 
-import org.springframework.http.HttpStatus; 
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping; 
 import java.security.Principal;
 import java.util.List; 
@@ -29,7 +30,6 @@ public class UserController {
     @GetMapping("/me")
     public ResponseEntity<User> getAuthenticatedUser(Principal principal) {
         
-        // The Security filter ensures principal is not null, but we check anyway.
         if (principal == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build(); 
         }
@@ -38,16 +38,28 @@ public class UserController {
         User user = userService.findUserByEmail(email);
 
         if (user == null) {
-            // This should not happen if the user is authenticated, but good practice
             return ResponseEntity.notFound().build();
         }
         
-        // Returns the full User object (including the role via inheritance)
         return ResponseEntity.ok(user);
     }
     @GetMapping("/all")
     public ResponseEntity<List<User>> getAllUsers() {
-        // Security for this endpoint is handled in SecurityConfig
         return ResponseEntity.ok(userService.findAllUsers());
+    }
+    @DeleteMapping("/me")
+    public ResponseEntity<Void> deleteCurrentUser(Principal principal) {
+        if (principal == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build(); 
+        }
+        
+        try {
+            userService.deleteUserByEmail(principal.getName());
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            // Log the exception
+            System.err.println("Error deleting user: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 }

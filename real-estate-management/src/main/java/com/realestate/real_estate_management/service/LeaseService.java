@@ -4,53 +4,47 @@ import com.realestate.real_estate_management.entity.*;
 import com.realestate.real_estate_management.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional; // Make sure this is imported
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Objects; // --- FIX: Import Objects
 
 @Service
+@Transactional // Make sure this is present
 public class LeaseService {
 
     @Autowired private LeaseRepository leaseRepository;
     @Autowired private PropertyRepository propertyRepository;
     @Autowired private TenantRepository tenantRepository;
-    // We no longer need to Autowire SellerRepository here
-    // as we get the seller via the Property entity.
 
-    /**
-     * Creates and saves a new Lease transaction.
-     * * NOTE: Seller is determined automatically from the Property's owner.
-     * * @param propertyId The ID of the property being leased.
-     * @param tenantEmail The email of the borrower (Tenant).
-     * @param leaseDetails The Lease entity from the request body.
-     * @return The saved Lease entity.
-     */
     public Lease createLease(Long propertyId, String tenantEmail, Lease leaseDetails) {
 
-        // 1. Fetch entities (Property, Tenant)
         Property property = propertyRepository.findById(propertyId)
                 .orElseThrow(() -> new RuntimeException("Property not found with id: " + propertyId));
+
+        // --- FIX 1: Check if the property is available for rent ---
+        if (!Objects.equals(property.getPropertyStatus(), "FOR_RENT")) {
+            throw new RuntimeException("Property with id: " + propertyId + " is not available for rent.");
+        }
 
         Tenant tenant = tenantRepository.findByEmail(tenantEmail); 
         if (tenant == null) { throw new RuntimeException("Tenant not found."); }
 
-        // 2. CRITICAL: Get the Seller directly from the Property entity
         Seller seller = property.getSeller();
         if (seller == null) { throw new RuntimeException("Property does not have an assigned Seller."); }
 
+        // --- FIX 2: Update the property's status ---//
+        property.setPropertyStatus("LEASED");
+        propertyRepository.save(property); // This is safe within the transaction
 
-        // 3. Build the complete Lease object
         Lease newLease = new Lease();
         
-        // CRITICAL: Instantiate the EmbeddedId
         newLease.setId(new LeaseKey()); 
 
-        // 4. Set the relationships (which populates the LeaseKey via @MapsId)
         newLease.setProperty(property);
         newLease.setTenant(tenant);
-        newLease.setSeller(seller); // Set the retrieved seller
-        
-        // 5. Set transactional details
+        newLease.setSeller(seller); 
         newLease.setAmount(leaseDetails.getAmount());
         newLease.setStartDate(LocalDate.now());
         newLease.setEndDate(leaseDetails.getEndDate());
@@ -60,6 +54,7 @@ public class LeaseService {
         return leaseRepository.save(newLease);
     }
 
+    @Transactional(readOnly = true)
     public List<Lease> getLeasesByTenantEmail(String email) {
         return leaseRepository.findByTenant_Email(email);
     }

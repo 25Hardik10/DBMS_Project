@@ -26,7 +26,7 @@ public class MvcController {
         return "upload";
     }
 
-    @GetMapping("/register") // <-- New Route for Registration
+    @GetMapping("/register") 
     public String register() {
         return "register";
     }
@@ -37,6 +37,14 @@ public class MvcController {
     }
     @GetMapping("/admin")
     public String adminPanel() {
-        return "admin"; // This will serve admin.html
+        return "admin"; 
+    }
+    @GetMapping("/edit-profile")
+    public String editProfile() {
+        return "edit-profile"; 
+    }
+    @GetMapping("/edit-property")
+    public String editProperty() {
+        return "edit-property"; // This will look for "edit-property.html"
     }
 }
