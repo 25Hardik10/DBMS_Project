@@ -1,14 +1,11 @@
 package com.realestate.real_estate_management.controller;
 
+import com.realestate.real_estate_management.dto.ReviewRequest;
 import com.realestate.real_estate_management.entity.Review;
 import com.realestate.real_estate_management.service.ReviewService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import java.security.Principal;
 
 @RestController
@@ -19,15 +16,20 @@ public class ReviewController {
     private ReviewService reviewService;
 
     @PostMapping("/properties/{propertyId}/reviews")
-    public ResponseEntity<Review> createReview(
+    public ResponseEntity<?> createReview(
             @PathVariable Long propertyId,
-            @RequestBody Review review,
+            @RequestBody ReviewRequest request,
             Principal principal) {
-        
-        String userEmail = principal.getName(); 
-        Review savedReview = reviewService.createReview(propertyId, userEmail, review);
-        
-        return ResponseEntity.ok(savedReview);
+
+        if (principal == null) {
+            return ResponseEntity.status(401).body("Unauthorized");
+        }
+
+        try {
+            Review saved = reviewService.createReview(propertyId, principal.getName(), request);
+            return ResponseEntity.ok(saved);
+        } catch (RuntimeException ex) {
+            return ResponseEntity.badRequest().body(ex.getMessage());
+        }
     }
-    
 }

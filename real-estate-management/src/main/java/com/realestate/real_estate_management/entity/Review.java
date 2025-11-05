@@ -12,80 +12,48 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 
 @Entity
-@Table(name = "Review")
+@Table(name = "review") // lowercase to match your DB
 public class Review {
 
     @EmbeddedId
     private ReviewKey id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @MapsId("userId")
-    @JoinColumn(name = "ReviewedBy")
+    @MapsId("userId")              // must match field name in ReviewKey
+    @JoinColumn(name = "reviewed_by")
     private User user;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @MapsId("propertyId") 
-    @JoinColumn(name = "ReviewedProp")
+    @MapsId("propertyId")          // must match field name in ReviewKey
+    @JoinColumn(name = "reviewed_prop")
     private Property property;
 
-    @Column(name = "Comments", length = 500)
+    @Column(name = "comments", length = 500)
     private String comments;
 
-    @Column(name = "Rating", nullable = false)
+    @Column(name = "rating", nullable = false)
     private BigDecimal rating;
 
-    @Column(name = "ReviewDate", nullable = false)
+    @Column(name = "review_date", nullable = false)
     private LocalDate reviewDate;
 
-    public Review() {
-    }
+    public Review() {}
 
-    public ReviewKey getId() {
-        return id;
-    }
+    public ReviewKey getId() { return id; }
+    public void setId(ReviewKey id) { this.id = id; }
 
-    public void setId(ReviewKey id) {
-        this.id = id;
-    }
+    public User getUser() { return user; }
+    public void setUser(User user) { this.user = user; }
 
-    public User getUser() {
-        return user;
-    }
+    public Property getProperty() { return property; }
+    public void setProperty(Property property) { this.property = property; }
 
-    public void setUser(User user) {
-        this.user = user;
-    }
+    public String getComments() { return comments; }
+    public void setComments(String comments) { this.comments = comments; }
 
-    public Property getProperty() {
-        return property;
-    }
+    public BigDecimal getRating() { return rating; }
+    public void setRating(BigDecimal rating) { this.rating = rating; }
 
-    public void setProperty(Property property) {
-        this.property = property;
-    }
-
-    public String getComments() {
-        return comments;
-    }
-
-    public void setComments(String comments) {
-        this.comments = comments;
-    }
-
-    public BigDecimal getRating() {
-        return rating;
-    }
-
-    public void setRating(BigDecimal rating) {
-        this.rating = rating;
-    }
-
-    public LocalDate getReviewDate() {
-        return reviewDate;
-    }
-
-    public void setReviewDate(LocalDate reviewDate) {
-        this.reviewDate = reviewDate;
-    }
-
+    public LocalDate getReviewDate() { return reviewDate; }
+    public void setReviewDate(LocalDate reviewDate) { this.reviewDate = reviewDate; }
 }

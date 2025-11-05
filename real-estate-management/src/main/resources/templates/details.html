@@ -275,7 +275,11 @@
                 fetch(`http://localhost:8080/api/properties/${id}/reviews`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
+                    credentials: 'same-origin', // include session cookies if you use form-login
+                    body: JSON.stringify({
+                        rating: parseInt(document.getElementById('rating').value, 10),
+                        comments: document.getElementById('comments').value
+                    })
                 })
                 .then(res => {
                     if (res.ok) {
