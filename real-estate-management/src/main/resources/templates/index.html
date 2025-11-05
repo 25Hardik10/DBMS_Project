@@ -1,237 +1,518 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Property Search</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        .card-hover-effect:hover {
-            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.2) !important;
-            transform: translateY(-5px);
-            cursor: pointer;
-        }
-        .card-hover-effect {
-            transition: all 0.3s ease-in-out;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>UrbanNest - Home</title>
+  
+  <!-- STYLES from new 'main.html' -->
+  <style>
+    /* Reset & Base */
+    * { margin:0; padding:0; box-sizing:border-box; font-family: Arial, sans-serif; }
+    body { background:#f5f5f5; color:#333; }
+    a { text-decoration:none; color:inherit; }
+    button { cursor:pointer; }
+
+    /* Hero Background (includes header & search) */
+    .hero-background {
+      background: url("https://wallpapercave.com/wp/wp4110648.jpg") no-repeat center center;
+      background-size: cover;
+      position: relative;
+    }
+
+    .hero-background::before {
+      content: "";
+      position: absolute;
+      top:0; left:0;
+      width:100%;
+      height:100%;
+      background: rgba(0,0,0,0.35);
+      z-index:0;
+    }
+
+    /* Header */
+    header {
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      padding:15px 30px;
+      position:sticky;
+      top:0;
+      z-index:10;
+      color:#fff;
+    }
+    .logo { 
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size:24px; 
+      font-weight:bold; 
+      color:#fff; 
+    }
+    .logo-img {
+      width: 40px;
+      height: 40px;
+      object-fit: contain;
+      border-radius: 5px;
+    }
+    
+    /* This is the functional nav container */
+    nav ul { 
+      display:flex; 
+      list-style:none; 
+      gap:10px; 
+      align-items: center;
+    }
+    /* Styling for our functional nav links */
+    nav ul li a, nav ul li button { 
+      padding:8px 12px; 
+      border-radius:5px; 
+      transition:0.2s; 
+      color:#fff; 
+      background: transparent;
+      border: none;
+      font-size: 16px;
+    }
+    nav ul li a:hover, nav ul li button:hover { 
+      background:rgba(0,123,255,0.7); 
+      color:#fff; 
+    }
+    /* Specific styles for different button types */
+    nav ul li a.btn-danger { background-color: #dc3545; }
+    nav ul li a.btn-warning { background-color: #ffc107; color: #000; }
+    nav ul li a.btn-info { background-color: #0dcaf0; color: #000;}
+    nav ul li a.btn-success { background-color: #198754; }
+    nav ul li button.btn-secondary { background-color: #ff0000; }
+
+
+    /* Hero Section (Floating Search Bar) */
+    .hero-section {
+      padding: 80px 30px 60px; /* Reduced top padding */
+      display:flex;
+      flex-direction: column; /* Stack form elements */
+      align-items: center;
+      position: relative;
+      z-index:1;
+    }
+
+    /* Functional Search Form */
+    #searchForm {
+      width: 100%;
+      max-width: 900px;
+      backdrop-filter: blur(8px);
+      background: rgba(255,255,255,0.2);
+      padding: 20px;
+      border-radius: 20px;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+    #searchForm:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 12px 35px rgba(0,0,0,0.35);
+    }
+    
+    .search-bar-inputs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+
+    #searchForm input, #searchForm select {
+      padding:12px;
+      font-size:16px;
+      border-radius:30px;
+      border:1px solid rgba(255,255,255,0.5);
+      flex: 1 1 200px; /* Allow wrapping */
+      background: rgba(255,255,255,0.7);
+      color:#000;
+      transition: all 0.3s;
+    }
+    #searchForm input::placeholder { color:#555; }
+    #searchForm input:focus, #searchForm select:focus {
+      outline:none;
+      border-color:#007bff;
+      background: #fff;
+    }
+
+    .amenities-bar {
+      margin-bottom: 15px;
+      color: #fff;
+      font-size: 0.9rem;
+    }
+    .amenities-bar label {
+      margin-right: 15px;
+    }
+
+    #searchForm button {
+      width: 100%;
+      padding:12px 25px;
+      border:none;
+      background:#007bff;
+      color:#fff;
+      font-size:16px;
+      border-radius:30px;
+      transition:0.3s;
+    }
+    #searchForm button:hover { background:#0056b3; transform: translateY(-2px); }
+
+    /* Main Content */
+    main { display:flex; padding:20px 30px; gap:20px; min-height:80vh; }
+    .content-left { flex:3; }
+    .content-right { flex:1; background:#fff; padding:20px; border-radius:10px; height:fit-content; box-shadow:0 2px 5px rgba(0,0,0,0.1); }
+    
+    /* Functional User Panel */
+    .user-panel h3 { margin-bottom:15px; color:#007bff; }
+    .user-panel p { margin-bottom:10px; font-size:14px; color:#555; }
+    .user-panel a, .user-panel button { 
+      width:100%; 
+      padding:10px 15px; 
+      border:none; 
+      border-radius:5px; 
+      background:#007bff; 
+      color:#fff; 
+      cursor:pointer; 
+      transition:0.2s; 
+      display: block;
+      text-align: center;
+      margin-bottom: 10px;
+    }
+    .user-panel a:hover, .user-panel button:hover { background:#0056b3; }
+    /* Role-specific button styles */
+    .user-panel .btn-danger { background-color: #dc3545; }
+    .user-panel .btn-warning { background-color: #ffc107; color: #000; }
+    .user-panel .btn-info { background-color: #0dcaf0; color: #000;}
+    .user-panel .btn-success { background-color: #198754; }
+    .user-panel .btn-secondary { background-color: #ff0000; }
+
+
+    /* Property Cards Container (ID 'listings' from old file) */
+    #listings { 
+      display:grid; 
+      grid-template-columns:repeat(auto-fit, minmax(250px, 1fr)); 
+      gap:20px; 
+    }
+    
+    /* Card Style (from new file, with hover from old file) */
+    .property-card {
+      background:#fff;
+      border-radius:10px;
+      overflow:hidden;
+      box-shadow:0 2px 5px rgba(0,0,0,0.1);
+      transition:0.3s;
+    }
+    .property-card:hover { 
+      transform:translateY(-5px); 
+      box-shadow:0 6px 12px rgba(0,0,0,0.2); 
+      cursor: pointer;
+    }
+    /* Using a placeholder for card images */
+    .property-card img { 
+      width:100%; 
+      height:200px; /* Adjusted height */
+      object-fit:cover; 
+      background-color: #eee;
+    }
+    .property-info { padding:15px; }
+    .property-info h4 { margin-bottom:5px; font-size:18px; }
+    .property-info p { font-size:14px; color:#555; margin-bottom:8px; }
+    .property-info .price { font-weight:bold; color:#007bff; font-size: 1.1rem; }
+    .property-info .status {
+      font-size: 0.8rem;
+      font-weight: bold;
+      padding: 3px 8px;
+      border-radius: 10px;
+      background-color: #198754;
+      color: white;
+      display: inline-block;
+      margin-bottom: 8px;
+    }
+    .property-info .details-link {
+      display: inline-block;
+      margin-top: 10px;
+      font-size: 0.9rem;
+      color: #007bff;
+      font-weight: bold;
+    }
+    .property-info .seller {
+        font-size: 0.8rem;
+        color: #6c757d;
+        margin-top: 10px;
+        border-top: 1px solid #eee;
+        padding-top: 8px;
+    }
+
+    /* Footer */
+    footer { margin-top:30px; padding:20px 30px; background:#222; color:#fff; display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px; }
+    footer a { color:#ccc; margin-right:15px; font-size:14px; }
+    footer a:hover { color:#fff; }
+
+    /* Responsive */
+    @media (max-width:900px){ 
+      main{flex-direction:column;} 
+      .content-right{margin-top:20px;} 
+      nav ul{flex-wrap:wrap; justify-content:center; gap:10px;}
+      .hero-section { padding:80px 15px 40px; }
+    }
+  </style>
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-        <div class="container-fluid">
-            <a class="navbar-brand" href="/">RealEstate Hub</a>
-            <div class="d-flex" id="authLinks">
-                </div>
-        </div>
-    </nav>
+
+  <!-- Hero Background (Includes Header & Search Bar) -->
+  <div class="hero-background">
+
+    <!-- Header -->
+    <header>
+       <div class="logo">
+        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRyNsqhLEMj-Zukqr34fSCk-cmqcUuPt1v63Q&s" alt="Logo" class="logo-img">
+        UrbanNest
+      </div>
     
-    <main class="container mt-4">
-        <h1 class="mb-4">Global Listings</h1>
+      <!-- FUNCTIONAL Nav container -->
+      <nav>
+        <ul id="authLinks">
+          <!-- Links will be dynamically injected here by JavaScript -->
+          <li><a href="/login" class="btn-success">Login</a></li>
+          <li><a href="/register" class="btn-info">Register</a></li>
+        </ul>
+      </nav>
+    </header>
 
-        <div class="card p-3 mb-4 shadow-sm">
-            <form id="searchForm">
-                <div class="row g-3">
-                    <div class="col-md-6">
-                        <label for="city" class="form-label">City Name</label>
-                        <input type="text" id="city" placeholder="e.g., Mumbai, Pune" name="city" class="form-control">
-                    </div>
-                    <div class="col-md-3">
-                        <label for="state" class="form-label">State</label>
-                        <input type="text" id="state" placeholder="e.g., Maharashtra" name="state" class="form-control">
-                    </div>
-                    <div class="col-md-6">
-                        <label for="type" class="form-label">Property Type</label>
-                        <select id="type" name="type" class="form-select">
-                            <option value="">-- All Types --</option>
-                            <option value="Flat">Flat</option>
-                            <option value="Land">Land</option>
-                            <option value="Commercial">Commercial</option>
-                            <option value="Rental">Rental</option>
-                            <option value="Coliving">CoLiving</option>
-                        </select>
-                    </div>
-                    <div class="col-md-6">
-                        <label for="minPrice" class="form-label">Min Price</label>
-                        <input type="number" id="minPrice" placeholder="e.g., 5000000" name="minPrice" class="form-control">
-                    </div>
-                    <div class="col-md-6">
-                        <label for="maxPrice" class="form-label">Max Price</label>
-                        <input type="number" id="maxPrice" placeholder="e.g., 10000000" name="maxPrice" class="form-control">
-                    </div>
-                </div>
-
-                <div class="row g-3 mt-2">
-                    <label class="form-label mb-0">Amenities (Must have all selected):</label>
-                    <div class="col-auto">
-                        <input type="checkbox" class="form-check-input amenity-check" value="Gym" id="checkGym">
-                        <label class="form-check-label" for="checkGym">Gym</label>
-                    </div>
-                    <div class="col-auto">
-                        <input type="checkbox" class="form-check-input amenity-check" value="Pool" id="checkPool">
-                        <label class="form-check-label" for="checkPool">Pool</label>
-                    </div>
-                    <div class="col-auto">
-                        <input type="checkbox" class="form-check-input amenity-check" value="Parking" id="checkParking">
-                        <label class="form-check-label" for="checkParking">Parking</label>
-                    </div>
-                    <div class="col-auto">
-                        <input type="checkbox" class="form-check-input amenity-check" value="Lift" id="checkLift">
-                        <label class="form-check-label" for="checkLift">Lift</label>
-                    </div>
-                </div>
-
-                <div class="row mt-3">
-                    <div class="col-12">
-                        <button type="submit" class="btn btn-primary w-100">Search</button>
-                    </div>
-                </div>
-            </form>
+    <!-- Hero Section (Floating Search Bar) -->
+    <div class="hero-section">
+      
+      <!-- FUNCTIONAL Search Form from old 'index.html' -->
+      <form id="searchForm">
+        <div class="search-bar-inputs">
+          <input type="text" id="city" placeholder="e.g., Mumbai, Pune" name="city">
+          <input type="text" id="state" placeholder="e.g., Maharashtra" name="state">
+          <select id="type" name="type">
+              <option value="">-- All Types --</option>
+              <option value="Flat">Flat</option>
+              <option value="Land">Land</option>
+              <option value="Commercial">Commercial</option>
+              <option value="Rental">Rental</option>
+              <option value="Coliving">CoLiving</option>
+          </select>
+          <input type="number" id="minPrice" placeholder="Min Price" name="minPrice">
+          <input type="number" id="maxPrice" placeholder="Max Price" name="maxPrice">
+        </div>
+        
+        <div class="amenities-bar">
+          <strong>Amenities:</strong>
+          <label><input type="checkbox" class="form-check-input amenity-check" value="Gym"> Gym</label>
+          <label><input type="checkbox" class="form-check-input amenity-check" value="Pool"> Pool</label>
+          <label><input type="checkbox" class="form-check-input amenity-check" value="Parking"> Parking</label>
+          <label><input type="checkbox" class="form-check-input amenity-check" value="Lift"> Lift</label>
         </div>
 
-        <div class="row row-cols-1 row-cols-md-3 g-4" id="listings">
-            <div class="col"><p>Loading properties...</p></div>
-        </div>
-    </main>
+        <button type="submit">Search Properties</button>
+      </form>
+    </div>
 
-    <script>
-        const authLinks = document.getElementById('authLinks');
-        
-        // --- THIS IS THE CORRECTED NAVBAR LOGIC ---
-        fetch('http://localhost:8080/api/users/me')
-            .then(res => {
-                if (res.ok) {
-                    return res.json(); // User is logged in
+  </div>
+
+  <!-- Main Content -->
+  <main>
+    <div class="content-left">
+      <!-- Property Categories container (ID 'listings' is from old file) -->
+      <h2 style="margin-bottom: 20px;">Global Listings</h2>
+      <div id="listings">
+        <!-- Listings will be dynamically injected here -->
+        <p>Loading properties...</p>
+      </div>
+    </div>
+
+    <div class="content-right">
+      <!-- FUNCTIONAL User Panel -->
+      <div class="user-panel" id="user-panel-content">
+        <!-- Content will be dynamically injected here -->
+        <h3>Welcome, Guest!</h3>
+        <p>Please log in or register to access your profile and list properties.</p>
+        <a href="/login" class="btn-success">Login</a>
+        <a href="/register" class="btn-info">Register</a>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <div>
+      <a href="#">About</a>
+      <a href="#">Contact</a>
+      <a href="#">Terms & Conditions</a>
+      <a href="#">Privacy Policy</a>
+    </div>
+    <div>
+      <a href="#">Facebook</a>
+      <a href="#">Twitter</a>
+      <a href="#">Instagram</a>
+      <a href="#">LinkedIn</a>
+    </div>
+  </footer>
+
+  <!-- FUNCTIONAL SCRIPT (MERGED) -->
+  <script>
+    const authLinks = document.getElementById('authLinks');
+    const userPanelContent = document.getElementById('user-panel-content');
+    
+    // --- 1. AUTHENTICATION LOGIC (from old 'index.html') ---
+    // This function now controls BOTH the header and the side panel
+    fetch('http://localhost:8080/api/users/me')
+        .then(res => {
+            if (res.ok) {
+                return res.json(); // User is logged in
+            }
+            return null; // User is not logged in
+        })
+        .then(user => {
+            let navLinks = [];
+            let panelLinks = [];
+
+            if (user) {
+                // --- LOGGED-IN STATE (ROLE-BASED) ---
+                
+                panelLinks.push(`<h3>Welcome, ${user.firstName}!</h3>`);
+                
+                // 1. Add role-specific links
+                if (user.adminPrivileges) {
+                    navLinks.push('<li><a href="/admin" class="btn-danger">Admin Panel</a></li>');
+                    panelLinks.push('<a href="/admin" class="btn-danger">Admin Panel</a>');
                 }
-                return null; // User is not logged in
-            })
-            .then(user => {
-                let navLinks = [];
-
-                if (user) {
-                    // --- LOGGED-IN STATE (ROLE-BASED) ---
-                    
-                    // 1. Add role-specific links
-                    if (user.adminPrivileges) {
-                        // ADMIN
-                        navLinks.push('<a href="/admin" class="btn btn-danger btn-sm me-2">Admin Panel</a>');
-                    }
-                    if (user.sellerType) {
-                        // SELLER
-                        navLinks.push('<a href="/upload" class="btn btn-warning btn-sm me-2">Upload Property</a>');
-                    }
-                    
-                    // 2. Add common logged-in links
-                    navLinks.push('<a href="/profile" class="btn btn-info btn-sm me-2">Profile</a>');
-                    navLinks.push('<button onclick="logout()" class="btn btn-secondary btn-sm">Logout</button>');
-
-                } else {
-                    // --- LOGGED-OUT STATE ---
-                    navLinks.push('<a href="/login" class="btn btn-success btn-sm me-2">Login</a>');
-                    navLinks.push('<a href="/register" class="btn btn-outline-light btn-sm">Register</a>');
+                if (user.sellerType) {
+                    navLinks.push('<li><a href="/upload" class="btn-warning">Upload Property</a></li>');
+                    panelLinks.push('<a href="/upload" class="btn-warning">Upload Property</a>');
                 }
+                
+                // 2. Add common logged-in links
+                navLinks.push('<li><a href="/profile" class="btn-info">Profile</a></li>');
+                panelLinks.push('<a href="/profile" class="btn-info">Profile</a>');
+                
+                navLinks.push('<li><button onclick="logout()" class="btn-secondary">Logout</button></li>');
+                panelLinks.push('<button onclick="logout()" class="btn-secondary">Logout</button>');
 
-                // 3. Render all the links
-                authLinks.innerHTML = navLinks.join('');
-            })
-            .catch(err => {
-                // Failsafe: If server is down, show logged-out state
-                console.error("Auth check failed:", err);
-                authLinks.innerHTML = '<a href="/login" class="btn btn-success btn-sm me-2">Login</a><a href="/register" class="btn btn-outline-light btn-sm">Register</a>';
-            });
-        // --- END OF CORRECTED NAVBAR LOGIC ---
-
-
-        function logout() {
-            fetch('/logout', { method: 'POST' })
-                .then(() => {
-                    window.location.href = '/login';
-                })
-                .catch(err => {
-                    console.error('Logout error:', err);
-                    window.location.href = '/login';
-                });
-        }
-        
-        // (The rest of your script for loadProperties and searchForm is correct and remains unchanged)
-        
-        function loadProperties(filters) {
-            const listingsDiv = document.getElementById('listings');
-            
-            const params = new URLSearchParams();
-            
-            if (filters.city) params.append('city', filters.city);
-            if (filters.state) params.append('state', filters.state);
-            if (filters.type) params.append('type', filters.type);
-            if (filters.minPrice) params.append('minPrice', filters.minPrice);
-            if (filters.maxPrice) params.append('maxPrice', filters.maxPrice);
-            
-            if (filters.amenities && filters.amenities.length > 0) {
-                filters.amenities.forEach(amenity => {
-                    params.append('amenity', amenity);
-                });
+            } else {
+                // --- LOGGED-OUT STATE ---
+                panelLinks.push(`
+                    <h3>Welcome, Guest!</h3>
+                    <p>Please log in or register to access your profile and list properties.</p>
+                `);
+                
+                navLinks.push('<li><a href="/login" class="btn-success">Login</a></li>');
+                panelLinks.push('<a href="/login" class="btn-success">Login</a>');
+                
+                navLinks.push('<li><a href="/register" class="btn-info">Register</a></li>');
+                panelLinks.push('<a href="/register" class="btn-info">Register</a>');
             }
 
-            const url = `http://localhost:8080/api/properties/search?${params.toString()}`;
-            console.log("Fetching:", url); 
-
-            fetch(url)
-                .then(response => response.json())
-                .then(data => {
-                    if (data.length === 0) {
-                        listingsDiv.innerHTML = '<div class="col"><p>No properties found matching your criteria.</p></div>';
-                        return;
-                    }
-                    listingsDiv.innerHTML = ''; // Clear "Loading..."
-                    data.forEach(property => {
-                        listingsDiv.innerHTML += `
-                            <div class="col">
-                                <div class="card h-100 shadow-sm card-hover-effect">
-                                    <div class="card-body">
-                                        <span class="badge bg-primary">${property.propertyType}</span>
-                                        <h5 class="card-title mt-2">${property.city} - ${property.state}</h5>
-                                        <h6 class="card-subtitle mb-2 text-success">₹${property.price.toLocaleString('en-IN')}</h6>
-                                        <p class="card-text">${property.description.substring(0, 70)}...</p>
-                                        <a href="/details?id=${property.propertyId}" class="btn btn-outline-secondary btn-sm">View Details</a>
-                                    </div>
-                                    <div class="card-footer">
-                                        <small class="text-muted">Listed by: ${property.seller.email}</small>
-                                    </div>
-                                </div>
-                            </div>
-                        `;
-                    });
-                })
-                .catch(error => {
-                    listingsDiv.innerHTML = '<div class="col"><p class="text-danger">Failed to load properties.</p></div>';
-                    console.error('Error:', error);
-                });
-        }
-
-        document.getElementById('searchForm').addEventListener('submit', function(event) {
-            event.preventDefault();
-            
-            const type = document.getElementById('type').value;
-            const city = document.getElementById('city').value;
-            const state = document.getElementById('state').value;
-            const minPrice = document.getElementById('minPrice').value;
-            const maxPrice = document.getElementById('maxPrice').value;
-
-            const amenities = [];
-            document.querySelectorAll('.amenity-check:checked').forEach(checkbox => {
-                amenities.push(checkbox.value);
-            });
-
-            loadProperties({
-                type: type,
-                city: city,
-                state: state,
-                minPrice: minPrice,
-                maxPrice: maxPrice,
-                amenities: amenities
-            });
+            // 3. Render all the links
+            authLinks.innerHTML = navLinks.join('');
+            userPanelContent.innerHTML = panelLinks.join('');
+        })
+        .catch(err => {
+            // Failsafe: If server is down, show logged-out state
+            console.error("Auth check failed:", err);
+            authLinks.innerHTML = '<li><a href="/login" class="btn-success">Login</a></li><li><a href="/register" class="btn-info">Register</a></li>';
+            userPanelContent.innerHTML = `
+                <h3>Error</h3>
+                <p>Could not connect to service. Please try again later.</p>
+                <a href="/login" class="btn-success">Login</a>
+            `;
         });
 
-        // Initial load (with no filters)
-        loadProperties({});
-    </script>
-    </body>
+    // --- 2. LOGOUT FUNCTION (from old 'index.html') ---
+    function logout() {
+        fetch('/logout', { method: 'POST' })
+            .then(() => {
+                window.location.href = '/login';
+            })
+            .catch(err => {
+                console.error('Logout error:', err);
+                window.location.href = '/login';
+            });
+    }
+    
+    // --- 3. PROPERTY LOADING FUNCTION (from old 'index.html') ---
+    function loadProperties(filters) {
+        const listingsDiv = document.getElementById('listings');
+        listingsDiv.innerHTML = '<p>Loading properties...</p>'; // Show loading message
+        
+        const params = new URLSearchParams();
+        
+        if (filters.city) params.append('city', filters.city);
+        if (filters.state) params.append('state', filters.state);
+        if (filters.type) params.append('type', filters.type);
+        if (filters.minPrice) params.append('minPrice', filters.minPrice);
+        if (filters.maxPrice) params.append('maxPrice', filters.maxPrice);
+        
+        if (filters.amenities && filters.amenities.length > 0) {
+            filters.amenities.forEach(amenity => {
+                params.append('amenity', amenity);
+            });
+        }
+
+        const url = `http://localhost:8080/api/properties/search?${params.toString()}`;
+        console.log("Fetching:", url); 
+
+        fetch(url)
+            .then(response => response.json())
+            .then(data => {
+                if (data.length === 0) {
+                    listingsDiv.innerHTML = '<div class="col"><p>No properties found matching your criteria.</p></div>';
+                    return;
+                }
+                listingsDiv.innerHTML = ''; // Clear "Loading..."
+                
+                data.forEach(property => {
+                    // --- This render logic now uses the NEW design's CSS classes ---
+                    listingsDiv.innerHTML += `
+                        <div class="property-card" onclick="window.location.href='/details?id=${property.propertyId}'">
+                            <img src="https://placehold.co/300x200/eee/ccc/png?text=${property.propertyType}" alt="${property.propertyType}">
+                            <div class="property-info">
+                                <span class="status">${property.propertyStatus}</span>
+                                <h4>${property.city}, ${property.state}</h4>
+                                <p>${property.description.substring(0, 70)}...</p>
+                                <span class="price">₹${property.price.toLocaleString('en-IN')}</span>
+                                <div class="seller">Listed by: ${property.seller.email}</div>
+                                <a href="/details?id=${property.propertyId}" class="details-link">View Details</a>
+                            </div>
+                        </div>
+                    `;
+                });
+            })
+            .catch(error => {
+                listingsDiv.innerHTML = '<div class="col"><p class="text-danger">Failed to load properties. Is the server running?</p></div>';
+                console.error('Error:', error);
+            });
+    }
+
+    // --- 4. SEARCH FORM LISTENER (from old 'index.html') ---
+    document.getElementById('searchForm').addEventListener('submit', function(event) {
+        event.preventDefault();
+        
+        const type = document.getElementById('type').value;
+        const city = document.getElementById('city').value;
+        const state = document.getElementById('state').value;
+        const minPrice = document.getElementById('minPrice').value;
+        const maxPrice = document.getElementById('maxPrice').value;
+
+        const amenities = [];
+        document.querySelectorAll('.amenity-check:checked').forEach(checkbox => {
+            amenities.push(checkbox.value);
+        });
+
+        loadProperties({
+            type: type,
+            city: city,
+            state: state,
+            minPrice: minPrice,
+            maxPrice: maxPrice,
+            amenities: amenities
+        });
+    });
+
+    // --- 5. INITIAL LOAD (from old 'index.html') ---
+    loadProperties({});
+
+  </script>
+</body>
 </html>

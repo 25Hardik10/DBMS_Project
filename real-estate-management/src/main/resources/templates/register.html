@@ -1,124 +1,470 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Register - Real Estate</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>body { background-color: #f8f9fa; }</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Register - UrbanNest</title>
+  
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: Arial, sans-serif;
+    }
+
+    body {
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      /* Using a stable placeholder for the light mode background */
+      background: url("https://wallpapercave.com/wp/wp4110648.jpg") no-repeat center center fixed;
+      background-size: cover;
+      transition: background 0.3s, color 0.3s;
+      position: relative;
+    }
+
+    body.dark-mode {
+      /* Using a stable placeholder for the dark mode background */
+      background: #121212 url("https://wallpapercave.com/wp/wp4110648.jpg") no-repeat center center fixed;
+      background-size: cover;
+      color: #f1f1f1;
+    }
+
+    .overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: -1;
+    }
+
+    .login-container {
+      display: flex;
+      width: 700px;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 8px 18px rgba(0, 0, 0, 0.4);
+      background: white;
+      z-index: 1;
+      transition: background 0.3s, color 0.3s;
+    }
+
+    body.dark-mode .login-container {
+      background: #1e1e1e;
+      color: #f1f1f1;
+    }
+
+    .left-side {
+      width: 50%;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .left-side img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;  
+    }
+
+    .right-side {
+      flex: 1;
+      /* Reduced padding to make space for all fields */
+      padding: 20px 30px; 
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      transition: background 0.3s, color 0.3s;
+      /* Added for scrolling on small screens */
+      overflow-y: auto;
+      max-height: 95vh;
+    }
+
+    h2 {
+      font-size: 2rem;
+      font-weight: 600;
+      color: #333;
+    }
+
+    body.dark-mode h2 {
+      color: #f1f1f1;
+    }
+
+    /* Styling for select and inputs */
+    .input-field, .form-select {
+      width: 100%;
+      padding: 12px;
+      margin-bottom: 12px; /* Reduced margin */
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      font-size: 1rem;
+      background-color: #ffffff; /* Ensure select has bg */
+    }
+    
+    body.dark-mode .input-field,
+    body.dark-mode .form-select {
+        background-color: #2c2c2c;
+        border-color: #555;
+        color: #f1f1f1;
+    }
+    
+    /* Container for first/last name (from your new design) */
+    .name-container {
+        display: flex;
+        gap: 10px;
+        width: 100%;
+    }
+    .name-container .input-field {
+        width: 50%; /* Each takes half */
+        margin-bottom: 12px; /* Add margin here */
+    }
+
+    /* Changed login-btn to register-btn for clarity */
+    .register-btn {
+      width: 100%;
+      padding: 12px;
+      background-color: #28a745; /* Green color for register */
+      color: white;
+      font-size: 1.1rem;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: 0.3s;
+      text-decoration: none;
+      text-align: center;
+    }
+
+    body.dark-mode .register-btn {
+      background-color: #bb86fc;
+      color: #121212;
+    }
+
+    .register-btn:hover {
+      background-color: #218838;
+    }
+
+    body.dark-mode .register-btn:hover {
+      background-color: #9a67ea;
+    }
+
+    .extra-links {
+      margin-top: 15px;
+      text-align: center;
+    }
+
+    .extra-links a {
+      color: #007bff;
+      text-decoration: none;
+      font-size: 0.9rem;
+    }
+
+    body.dark-mode .extra-links a {
+      color: #bb86fc;
+    }
+
+    .logo-container {
+      display: flex;
+      align-items: center;
+      margin-bottom: 20px; /* Reduced margin */
+      gap: 10px;
+    }
+
+    .logo {
+      width: 60px;
+      height: 60px;
+    }
+
+    /* Dark mode toggle button */
+    .dark-mode-toggle {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      padding: 10px 15px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      z-index: 2;
+      transition: background 0.3s, color 0.3s;
+    }
+
+    body.dark-mode .dark-mode-toggle {
+      background-color: #bb86fc;
+      color: #000000;
+    }
+
+    .password-container {
+      display: flex;
+      position: relative;
+      width: 100%;
+      margin-bottom: 12px; /* Reduced margin */
+    }
+
+    .password-container .input-field {
+        width: 100%;
+        margin-bottom: 0; /* Container now has the margin */
+    }
+
+    .toggle-password {
+      background: none;
+      border: none;
+      color: black;
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      cursor: pointer;
+      font-size: 1.2rem;
+    }
+    
+    body.dark-mode .toggle-password {
+        color: #ccc;
+    }
+    
+    /* Error/Success message styling (from original) */
+    #message {
+        font-size: 0.9rem;
+        margin-top: 15px;
+        color: #dc3545; /* Red error color */
+        text-align: center;
+        font-weight: bold;
+        /* Ensure it's visible */
+        height: 1em; 
+    }
+    
+    .text-success { color: #198754 !important; }
+    .text-danger { color: #dc3545 !important; }
+    .text-info { color: #0dcaf0 !important; }
+    
+  </style>
 </head>
 <body>
-    <div class="container mt-5">
-        <div class="row justify-content-center">
-            <div class="col-md-6">
-                <div class="card shadow-lg">
-                    <div class="card-header bg-success text-white text-center">
-                        <h4 class="mb-0">Create New Account</h4>
-                    </div>
-                    <div class="card-body p-4">
-                        <form id="registerForm">
-                            <div class="mb-3">
-                                <label for="userType" class="form-label">I want to register as a:</label>
-                                <select id="userType" class="form-select" required>
-                                    <option value="sellers">Seller</option>
-                                    <option value="buyers">Buyer</option>
-                                    <option value="tenants">Tenant</option>
-                                </select>
-                            </div>
-                            <div class="row mb-3">
-                                <div class="col">
-                                    <label for="firstName" class="form-label">First Name</label>
-                                    <input type="text" id="firstName" class="form-control" required>
-                                </div>
-                                <div class="col">
-                                    <label for="lastName" class="form-label">Last Name</label>
-                                    <input type="text" id="lastName" class="form-control" required>
-                                </div>
-                            </div>
-                            <div class="mb-3">
-                                <label for="email" class="form-label">Email</label>
-                                <input type="email" id="email" class="form-control" required>
-                            </div>
-                            <div class="mb-3">
-                                <label for="mobile" class="form-label">Mobile</label>
-                                <input type="text" id="mobile" class="form-control" maxlength="10" required>
-                            </div>
-                            <div class="mb-3">
-                                <label for="password" class="form-label">Password</label>
-                                <input type="password" id="password" class="form-control" required>
-                            </div>
+  <button class="dark-mode-toggle" onclick="toggleDarkMode()">Toggle Dark Mode</button>
+  <div class="overlay"></div>
 
-                            <button type="submit" class="btn btn-success w-100">Register</button>
-                            <p id="message" class="mt-3 text-center"></p>
-                        </form>
-                    </div>
-                    <div class="card-footer text-center">
-                        <small class="text-muted">Already have an account? <a href="/login">Sign In</a></small>
-                    </div>
-                </div>
-            </div>
-        </div>
+  <div class="login-container">
+    <div class="left-side">
+      <img 
+        src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wCEAAkGBw8QDw8NDw4PDQ0PDxAPDg8ODQ8QEBUPFhEZGBUVFxYYHikgGBolHBYVITIhJykrLy4uGCAzRDMsOCgtLisBCgoKDg0OGhAQGi4lHyAtKystMDArLS0tLS0wLi0tLS0tLS0uLS0tKy0tKystLS0tLS0tLi01LS0rLS0rLS8tK//AABEIALcBEwMBIgACEQEDEQH/xAAbAAEBAAIDAQAAAAAAAAAAAAAAAQIFAwQGB//EAEoQAAEEAAQDBQELCQYEBwAAAAEAAgMRBBIhMQUTIiMyQVFhFAYVJEJDREVScYGhFjM0VWJzsbLwU1RjkbPRNXKCwWR0g6LD4eL/xAAZAQADAQEBAAAAAAAAAAAAAAAAAQIDBAX/xAAsEQEAAgEBBwIFBQEAAAAAAAAAARECAwQSITEyQcHh8AUTImGBQpGhsdFx/9oADAMBAAIRAxEAPwD7MqFAqtHOqqgVQYqiJGiKogCIqgxVFUlAVRUJGKqKpKEREAREQBERAEREAREQBERAEREARFEytUURAtbRS1EC3XCqiqtgoVQIlKoVEVSMREQdCKogxVFUAVUVSUKqKpGIiIAiIgCIiZCIiAIiIAiIgCiIgCKIhIiiJlYiiIK3AslAqqQoVUCqSlCqgVSOFREQoVReVxPuumZI+McMxTwx72BzWvpwa4jMOnY1avDTyz6Wepq4afHKXqiVr8XxzCxXnnZY3DTnd+dbHs2/jva30JXgMfiZsQXiTDcRLZOaKc1xa1sk0bwAMuzeXlHo4rsYvAQkyde7p/nWCGp4tG87yfWAHpseogLSdDdreYRtW/e52fSFVFxQ4gOfLHRBiLAT4HM21zuxMbi2QxumkJEbBbiGucd62As7rT8S90NZmwuYC3MC6WHEu6mYhkThlazUdRo35HUWV2/dO/Lg53FwZTW9RndAB1j5RoJavNYnFAOk7Vop2I34pM36QjG2XSrqvi3k2Nq8MYllqZzHCHLPizK+5HwvIsDs+IAAN4iGjTb4oF+YvuLmw2KcCzLIwAlgoDiFUca5p3Nbaf8A5pdVmIGY9qN3/Scx+kq2y/d6dzbVcsOI6mDmNq4/pGUm/b3DbLr5evc2FrfGODmyn6ufZuPc/j5JTle+N/Yh/RHiGmzK9t3J4U0Ct7B8CFvF5z3Myhz9Hh/wdp0xb5/l5BdOA8qzeleC9GsNSKyp1aOV4WIiKGoiIgCIiAiIiCFEQoIURE0zIoiiZFqrFVBW4lVisgmShVRVKVKFVAqkcKiiqFMgvk3E8E04jEH2UOueU5hxCFt9odaO32L6wF8m4pGz2ifo4eTz5e/PiA784dxzKtduxdU+/MPN+JdOPp5iXCzAtsfBBuN+JQea9NicQLk7Zo6pfnmGH0jGPGHT6vpeXUkOHl44mWOjh242xGJJ/wBResxE77k7V/el+d48fSDB4ReWmmw6RbSXDTa+ce/MsNi5ZeniIe3XQwX6Riv+aH/SC5uIyObE5zO8MtbeLgF5iLiROIc1kzDJpna3FMLt6HReunouDHGZiZetnnGOUQ33ukcRhJi0uByiiyWKJ3fGz5OkfetJH1yPZJPLh2E4kmU4vBurLjG5RlAsX3R5A0eqlsOIOkk4fIXNc6Qii1sEU7jUtfm3012g8VpcVA+5OxlPVPtwvBO3x8Z8XdVjq13ALz1ABPDknUnizZLJmPVNu757gT9I1sPTT7OnvLkglktlmUdTNDjMGfnzh4b6fh0961xCF2Y9jKBbvozB/rG978ur7OvvaLkjhdbKjlHVEb97cJsMe4nx001vwBzd4raKpz5TN/hsvc29xf1OeewaevEYeUXzpPCPW9tdthuCvQLz3ubjIebY9nwdo6sHBBrzpNLYbvxy7a3uSvQLHV6nTodEKoiLNsIiIIREQBRUqIAoiJpkURRCRREVJkRREE41kFiqg2QVWIVSk1VUVCSlVURBwyXyTik7PaMQOdggefLYfgXFw7Q6EiI2fVfWgvlXE8U4Tzj2nFNqeXQYKNwHaHQEv1C7di6p9+Jed8S6cffmHSjxDMw7fA7jbAOvf1iXsnwPcZe8wNGIkLpBxNjA1mNa865q7rTQG/h0WF5OPFusfCcXuPmMY8f3i9dHEGvmLoZMr2YuImHClr6lxYbYc6Qj42bbWr07q02vnHvxDHYeWXvzLzfur90EOJmJZLiZIMrQIQeTESN3Emyfsyj7V5TGYuAuyuwkeXLpy5pWSDX6zi5p+9q957wQR5hGxljMA+VsczrAmF06TLuxh7vgfM5ezicE5xDHvY+PM8cuTD4R7A32gaAF+nT06D8dFWWtp44Rjjf7/wCM8dm1s9Sc85i5+1/28rwHjWHZFiMPLiZuVNGxscWNjkmgY4PBJ7N1kV5NavW8RwrQ6QOjhdfNcCMDinjK7GxPGrTqdQT5kZtmkLUP9ymElAD2GJzsjc+FfHHqWwi8r5Xt70jjoBpQ8i7c8TxEJkfUsWUNeyzicZGbZi4WHRgrvCtPGhsSuXOYmfpd2nhljjWdfZxsgZmPZR7v+Y4ofSV7356/b1d1cuHw7AWVFGOqPbBYka+3uPn56+hObYrhZMzMe0h3f87xx+k68R56fb091dyWSASt5MrHRdjRkxGLD83tzg4VtWawPPY9KMbo8qvs68cxhjc+MxwO5Abn5EkNDPOd5bG4uqvc7ELoceme6Gdz8W5tB1OEz3ZfhMdU1gv002XbDmmMlrmuPIbpFLiJTWefXLIKq/He9NgF1+NNkMM4bEZnEOpj4+k/CWb1R9fuWn/WXaoYw8bxLJQBinG5XNML2l/SeNmHNmcDXQcgF6CvILY8M92LzkEnJkDjC0SMZLHb5MVPFVEEiuS3ehd6gUtAWu5jXctuT2iubRzZvyg7l3tWtUseHxyZoh7MwPD8EXR5HUxvvhjOsC9DVG/VZzjjMNMdTOJin0rhGOGIw8OJDSwTRtkDSQSLF1a7a03uM/4dgv8Ay0X8q3K5so4u3GbxiRFESUIiFMkRFChMhUVUTTKFRCiaURETJgqoqkpQqoFUGqBQKqVKqoFUHChfMOIxzc+eo+KVzpa5crgys57oy7eS+nhfJuJ4RpxE59lY4meU5vfCFt9odavT7F27FVz78w874j04+viJZsjnsdnxbcbyur+Vb7EQsuTs4+9L8jwz9Yxnxf566+Is9dBeXZg22PgjNxvxKHz+1eoxMrLk7Rnel+X4YPpGMeLPPTXxNHrorTaucV7/AJljsXLK/PmIdudw6+obybvwfnifMf1X/NaVwzDqHed8fBf3geYv+vNXETgZ+0aNZLucCheI/Y9Pw9NUkwzfnB3nfLj+8AfU+7+rXLk7catwwEXH1DV0VdeA88N5N/h56fErkxHEHCKaHMdZpX8330wzZBlxrG5A4jpbRqjt3NysYJ9Y+0Hei+cA7+zf4fr+PrpjiWSXJpPWabbD8PI/TmVvvpdXuLJ6qUrn7IzEOzHtpN3fS2GP0lW2Xy6fQdG+q5YpzbO1k70f0nhz8+cPLXy9R0bhYsZJmOk27t8PgP1hfh6fhr31yQMkBZfNPUzUwYEfPnHw9Pw171rTGqZZxN/h1JZc8JuQyDkg9ePjmHenF9nRB8M22lbtWv8AdAI/Z8SH6Mp2Yxkvd+ks2DjW9LZzNcIT+db2O/IwgN5p9gzx20228SV1ePPeYcQWFsRykDmNibEKxDASS+xZ138T9i0hlMNS4M57T1c3nHwbkyflF53d34UuDhwhqCjJy+bgslsZmz++OM3F0Bd670u2S7mNGZmT2i8lx8zN+UG9d7LX3WsOHulzREyQZy/BBzg6DIWe+GM6W6Zc1UNNbvxU9h3h6T3O8cEeAwkbYy5zcPG0lxpt5fx/BbWLjT6zFrCKBNZm/Ev1XkOC/ouH/dN/yA/oreRd0ePS3/S3We7Fy3+ZlGMPTYHGc3N05cteN+J/2XZWr4F8p9o/mctoscoqXRhMzjciIoksUVKiEooqVCmmUUKqxTTIiImTFULFUJKZBVYqhBqqoqkaqrFVI2QXybijGe0T9PD/AM/L35MQHfnDv1Va+sBfKOJ4hgxE45+EFTy6OwAc4dodCeXqfVduwxO9NPO+JVu434daONljp4buNpMTf8y9ZiMVrJ23xpfnsg24gxv9jp5el5dQcw8ozEssfCMFuNuHjz/dL1uIc+39Uvelrr4r+sGeQ8vLw26LWu13cX58sdhqsq8eHZnebf1O3f8AL4rzxHk3+qHk1JJHZh1O7zvlsV/bjyb/AFtsk2br0fvJ8ljPPEeR/h6ebVn8fqZI4W8Cm4ttO5+hvYj08fQLky5O7Dm4mYh7jCC49PKaKlxQ0vDnXoGY9R1d/wB3V1cVhzco5NgunP8Awh7rPt8Zvva+d/GrPs2l2IA649H96L5HHf8AhvM6eO/rezl0sYYbl/Ru9iLze+O/vhHd1+15eNV02phWTsDDjMSIK1d9FP398b3zf9Xr39tFnHDRZ2J70W3C3j5+4/W03u/Dv+NLqsMWY/o3ef8ArC/+Kevr/wC79hckHKBY0ez96I0Pb/HiLvP9q/v/AGaWsXX5ZZVf4SWMNiNsazsQLdhXYUd6c1ms/bl8LvxXS49JH7NPcYfQkzNZO4Od8KZVdJy1967sT2hlsbE8iFpyxDFGwJJ9DzD3Sb2IN34Uutxx7hBiDzX4fR3aZXtDfhLPFnV6aeatl2axxbz2jIc/OPaZunL+UPdy1v43f3Lh4c6PsexeG83BZWc0213vjjOonLqLs1Q33XYc481o5prnk8i5Kv8AKHv/AFfTzXHw+Q3Efa3El+CBlvEW8e+GM7PbNXxddNPJLsfeHc4L+i4f90z/AOit5H3B4aN08+yK0fBf0XD/ALtv8FvIu4PDpb/pbKO8tP0w3XA/lPtH8XLaLV8D2k8NRp97ltFhn1OrS6IERRSsRCohMixKqhVJlCoqommURFEBiFViqECJZKrFVJUMrVWKqDZIoiQtla+XcSxTxPOPaMa0CaWg3Ctc0DmHQHPqF77GcSAb09J6XAuoXGW3mo6sF9NuA1+5eB4jFLz56i4lXOlrJNTaznujJt5Lt2SKmb8eXnbfnwinXjxT7HwjHbj5o0f/ACL008L7f2T+9L80xx+kGHwl8tfUdWjQWnzbIZrHZcU3G8+n8i3+Iw7bk7Fp6pfmmFP0iw+Muv1vuzaOAab2mrj0ZbHM1l6u9PF3ugbyfIPPjiP8T1/H10SRdQ7P47teQ/8At7+v/W/ouTEgOD2glsbM72skZh3W888OqjQJ31rTc3dcLoxnFtA63amLDafCBr3r9fP79Fyzyd2M8WEEGsfZjvRfNpB/dv8AE9Pw/ZN8WIxJuQCY3mxH0uW1WPjG2XStq+LeTxtdoAdmw3IY3xMicGYXliMOw50BdmAvUbVrpeW5Ow8uaTnSCQSysEIlwQcWHGM6wToAAKo60aPVSmFzdMZuZHJkke5jqz5XcVN5XcQGU1l2IIH35PVc0XECWRw52UJWSZvfG5CTjXNyk5dW6VXj3PC1lgZpecS5k2JOWUZHzYR2nttB2mvS3UeQFHqXNgXh7WwucYiHc3nOkwznOrFOqKm+Br8a3tXHLjCMo48J7NdLjS/CiFxicGsMmY4wzutxmGrgAa6d/tHguhxu3xYjJDFM/KQImiQ5qxDLtrSPKz66ruzF/KOst8kVbsLJrmn8G/drtsN7XS904+DTxzukEbWuNNjgcQHYmNwqiL8NytIhjM3zdAtdzGu5Qye0Vzsr7zflB3LvLtrVWuPh8UmaIeytDw/BF0XLmpjffDGdpWaxpRsmtdkIZz2m3c3nEVlbkyflD9a7u/CvvXBw5kNQAOk5fOwRYTGzNn98cZuM1AXeoJNeCOw7w2XBf0WD903+Gq3kZ6R49Lfs/NLT8BjvCQuO3JaRXoP+xW6AoVWlDT/0yo7y0/TDccD+U+0fxctovNwuoEl4bTgLc5reovyigSLNuqvWvFbXD407EF3ePdcHCid7+w67aeO5xzji6NPL6ad5Fxsma7QG9/A+BpZWpaWqlqWpaKJbUtQlRNK2oiIAiIgOJUKBUKmcMgqoFQk0hUUVCRquljHAnKS+u5I3lzFhY4WdW+NDvXpfqu4tPjhynW9omMgk5YIa3M9g5kYe/KcpFOp5IA00JTiEZzTF+ILWPc0FzyTK4QStaQ9zB0uJYGgBhD7fRNDdeY49w2KR8kkeEEj82dzhiMPCwxZbMpAfdkm8xABB8FupLPUZZJXMmbGS1rnNjoczlvJsCv7x6heedzojLmgw4wjp5JTLPHK6yXluj3buIFjwO/iuvZ7ibiXBtVTERMcP3dJ/C2NbBJ7PAeaXGvb2jLldW5dTvuJW+xGS5PzXel8OE/rKO9x51v479dJypDRhhgk5wfEYzJJE+ITuD4y9maqLRZaA1d2Zo9nlxPOIy4h8Ne0YcM1xzd38nR2mXLR3qyeoGvnOVWWz6cY3X9ekNnBh8rou46UYqQSOiYx1NPMc0OIHTQePWz6qsjaHySMLnZo5Wuj5LBK1z3l1uGUHL0mr3033WT4JyXAxnN1BkrJGh7cz9MrqGYaNzAgUBQzqU1o5Y5TJohDI+FznMw3NdYYGPLabb7NhtnTTVc0zbtxinXjwLaw0hyxsbh2PmAhjExlzRZCWZDQ7OjVVQ8gR058C4xTP9njI58rb97onYizjWu6Y7yvjNZi8myQHVYW19mldQZzY5XNe44p5BLXhwGUxZqoiyBsN6BK4cFhxKx2Gkwwkw8mJxL5XZXwta5kwdHbXHM8ki8w0OW9ildcVTFzTjweELMQ4N7VzY5bfBhYYAHHF5+WZgbDgCLb8bV25XDgomsdnkw4dTOnmYBkLc4xb3N625iCDqBVah27l2jhZfay3ns9oOFdlnGFdnbGcTYbvyyANK7xOqzZw2NuJdFEGxAYcOoMeSbmc4hznW0tLiTQp3qFUTzTOM3FQ0zoDynkNY5rITb24VsMdNdPduZqCL1YQMpvxJXX4phZXNmhibEcQ8HlsfkN3Ow7SjKbGuvpS3vEuFFkckmVsjhAQ55ovytZJQaCNA0uBBsuNmz4nve9WZweZHOa4deYAv8Ka0jYVYOl7URWtfN4I+TN08A4u5gNxlgnPSOVzc35QeHx8tf8ATfqtpFwdkeJMED3NjiiwU55sUUr/ANKxUjmHNQa63EB24W+49waMvZi6e6RvsuHDBlc3ljFsfmoi7BG9+C78WAIxD312Rw8MQ7tktdJbSK2pwUzqcFRo8Wn4bwtsMUMObmCNpbZDepuYmiASboEUL0H3LusiAOjQ6nA5ek6ZKoiia3P+S20uEa4Ub8BZc4mh9pWQw7PqjSqGtCtqGw2H+Sz3mu40UOH0IzO5gNlkbnEgZzRIa6iDWhcCPHYFdmHDuae5pcZIaxobdBgydINty2SRsRWh6du1tCv9lgSnvTIjCIdKNj9CWmwPOzYHhY118Tvr5BdqOwKPhp4nwHiTZ+1ZJaD5LalqWpaAqiKIFqiiIK1UREC0pFaVpApFURJVCqKICrARNtzsot4DXmt2i6B9NT/mslQgNPFwl/LY2Q8x+Ysla6eZ8RgMrnVlcdTRA1FVpsrjOE9BMbIuY50fOLRJHnhjDg1uVjuqg6g0mituqq3pR8vFosPw4iPCENe6n4ZzmOYzLEGRlthspLmetEu/FbbHw543N7Xdh7B4jk0eDo4keWuuosLnVSnKZk8cIiKcckXfc0DmOblslwBq6utt/BG4cUwdXQKb1uI2qzZ6vtda5VVNqqHWiwlEa6dL3PBySSSgUS/KACCAP9llh8IIumLRjpZJJQ8ve4l5JOUk6dR22rRc6qLOIhkilpaRpIxrmlrgHNcC1zXAEEHcEHcKhS0QFtLUUTC2mZYqIolJWBKpWJVRCZktLWJUtOkbzK1LUzJadFvKlqWpaKK2SKIlQtUURB2zREUthERAEREAVUVQBEUQTJFiqgMlbWFpaBbO1bWFpaCtnaWsLVtAtlaLG0tB2yURECxERAYlYlZlYkJwmWBWJWRCmVVDKWCLLKmVNFMVbSkyoOpFUpWkjgREQbNERZugRETAiIgCqIgIiIghREQSooiCLS0RMi1bURBMrVREGKoiRiqqIMUpEQaUmVEQVGVTKiIKjKplREymEpSkRNJSIiA//9k=" 
+        alt="Real Estate Icon"
+        id="left-image"
+        data-light="data:image/jpeg;base64,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"
+        data-dark="https://img.freepik.com/premium-photo/creative-logo-real-estate-company-with-skyscrapers-silver-red-colours-black-background-with-reflection_118631-5484.jpg"
+      >
     </div>
 
-    <script>
-        document.getElementById('registerForm').addEventListener('submit', function(event) {
-            event.preventDefault();
+    <div class="right-side">
+      <div class="logo-container">
+        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRyNsqhLEMj-Zukqr34fSCk-cmqcUuPt1v63Q&s" alt="UrbanNest Logo" class="logo">
+        <h2>UrbanNest</h2>
+      </div>
+      
+      <form id="registerForm">
+        
+        <label for="userType" style="margin-bottom: 5px; display: block; font-size: 0.9rem;">I want to register as a:</label>
+        <select id="userType" class="form-select" required>
+            <option value="sellers">Seller (List Properties)</option>
+            <option value="buyers">Buyer (Purchase Properties)</option>
+            <option valueM="tenants">Tenant (Lease Properties)</option>
+        </select>
+        
+        <div class="name-container">
+            <input type="text" id="firstName" class="input-field" placeholder="First Name" pattern="[A-Za-z\s]+" title="Only letters allowed" required>
+            <input type="text" id="lastName" class="input-field" placeholder="Last Name" pattern="[A-Za-z\s]+" title="Only letters allowed" required>
+        </div>
+        
+        <input type="email" id="email" class="input-field" placeholder="Email" required>
+        <input type="tel" id="mobile" class="input-field" placeholder="Mobile Number" pattern="[0-9]{10}" title="Enter 10-digit mobile number" required>
+        
+        <div class="password-container">
+          <input 
+            type="password" 
+            class="input-field" 
+            placeholder="Password" 
+            id="password-field" 
+            required
+          >
+          <button type="button" class="toggle-password">👁️</button>
+        </div>
+        
+        <div class="password-container">
+          <input 
+            type="password" 
+            class="input-field" 
+            placeholder="Confirm Password" 
+            id="confirm-password-field" 
+            required
+          >
+          <button type="button" class="toggle-password">👁️</button>
+        </div>
+        
+        <p id="message"></p>
+
+        <button type="submit" class="register-btn">Create Account</button>
+        
+      </form>
+      <div class="extra-links">
+        <a href="/login">Already have an account? Login</a>
+      </div>
+    </div>
+  </div>
+
+   <script>
+  
+    // --- 1. DARK MODE (On Load) ---
+    window.addEventListener('DOMContentLoaded', () => {
+        // Check for dark mode in local storage
+        if (localStorage.getItem('darkMode') === 'enabled') {
+            document.body.classList.add('dark-mode');
             
-            const userType = document.getElementById('userType').value;
-            const endpoint = `http://localhost:8080/api/${userType}`;
+            // Use dark mode background
+            document.body.style.background = "url('https://images.unsplash.com/photo-1636812506445-db75eb55a2d5?fm=jpg&q=60&w=3000&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D') no-repeat center center fixed";
+            document.body.style.backgroundSize = "cover";
 
-            const basePayload = {
-                "firstName": document.getElementById('firstName').value,
-                "lastName": document.getElementById('lastName').value,
-                "email": document.getElementById('email').value,
-                "mobile": document.getElementById('mobile').value,
-                "password": document.getElementById('password').value,
-                "createdOn": new Date().toISOString().split('T')[0]
-            };
+            const leftImage = document.getElementById('left-image');
+            if (leftImage) leftImage.src = leftImage.dataset.dark;
+        }
+    });
 
-            let specificFields = {};
-            switch(userType) {
-                case 'sellers':
-                    specificFields = { "sellerType": "Individual" };
-                    break;
-                case 'buyers':
-                    specificFields = { "budget": 1000000, "preferredLocation": "Any" };
-                    break;
-                case 'tenants':
-                    specificFields = { "budget": 500, "leaseTerm": 6, "employmentStatus": true };
-                    break;
-            }
+    // --- 2. DARK MODE TOGGLE (From new design) ---
+    function toggleDarkMode() 
+    {
+        document.body.classList.toggle('dark-mode');
+        const isDarkMode = document.body.classList.contains('dark-mode');
 
-            const finalPayload = { ...basePayload, ...specificFields };
-            const message = document.getElementById('message');
+        if(isDarkMode){
+            document.body.style.background = "url('https://images.unsplash.com/photo-1636812506445-db75eb55a2d5?fm=jpg&q=60&w=3000&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D') no-repeat center center fixed";
+            document.body.style.backgroundSize = "cover";
+            localStorage.setItem('darkMode', 'enabled');
+        } else {
+            document.body.style.background = "url('https://wallpapercave.com/wp/wp4110648.jpg') no-repeat center center fixed";
+            document.body.style.backgroundSize = "cover";
+            localStorage.setItem('darkMode', 'disabled');
+        }
 
-            fetch(endpoint, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(finalPayload)
-            })
-            .then(response => {
-                if (response.ok) {
-                    message.textContent = `Registration successful! Redirecting to login.`;
-                    message.className = 'mt-3 text-success';
-                    setTimeout(() => {
-                        window.location.href = '/login';
-                    }, 1500);
-                } else if (response.status === 409) {
-                    message.textContent = 'Registration failed: Email or Mobile already in use.';
-                    message.className = 'mt-3 text-danger';
+        const leftImage = document.getElementById('left-image');
+        if (leftImage) {
+            leftImage.src = isDarkMode ? leftImage.dataset.dark : leftImage.dataset.light;
+        }
+    }
+
+    // --- 3. PASSWORD TOGGLE (From new design, made to work for multiple) ---
+    document.querySelectorAll('.password-container').forEach(container => {
+        const input = container.querySelector('input'); // Selects input regardless of ID
+        const toggle = container.querySelector('.toggle-password');
+        
+        if(input && toggle) {
+            // Set toggle button type to 'button' to prevent form submission
+            toggle.type = 'button'; 
+            
+            toggle.addEventListener('click', function() {
+                if (input.type === 'password') {
+                    input.type = 'text';
+                    toggle.innerHTML = '🙈'; 
                 } else {
-                    message.textContent = `Registration failed. Status: ${response.status}.`;
-                    message.className = 'mt-3 text-danger';
+                    input.type = 'password';
+                    toggle.innerHTML = '👁️';
                 }
-            })
-            .catch(error => {
-                message.textContent = 'Network error during registration.';
-                message.className = 'mt-3 text-danger';
-                console.error('Error:', error);
             });
+        }
+    });
+    
+    // --- 4. REGISTRATION FETCH LOGIC (From original functional page) ---
+    // This is the functionality you wanted to preserve.
+    document.getElementById('registerForm').addEventListener('submit', function(event) {
+        event.preventDefault(); // Stop the form from submitting normally
+        
+        const password = document.getElementById('password-field').value;
+        const confirmPassword = document.getElementById('confirm-password-field').value;
+        const message = document.getElementById('message');
+
+        // --- Password match validation ---
+        if (password !== confirmPassword) {
+            message.textContent = 'Passwords do not match.';
+            message.className = 'text-danger'; // Red for error
+            return; // Stop the submission
+        }
+        
+        const userType = document.getElementById('userType').value;
+        const endpoint = `http://localhost:8080/api/${userType}`;
+
+        // --- Payload from original functional page ---
+        const basePayload = {
+            "firstName": document.getElementById('firstName').value,
+            "lastName": document.getElementById('lastName').value,
+            "email": document.getElementById('email').value,
+            "mobile": document.getElementById('mobile').value,
+            "password": password, // Use the validated password
+            "createdOn": new Date().toISOString().split('T')[0]
+        };
+
+        // Default role-specific fields (from original functional page)
+        let specificFields = {};
+        switch (userType) {
+            case 'sellers':
+                specificFields = { "sellerType": "Individual" };
+                break;
+            case 'buyers':
+                specificFields = { "budget": 1000000, "preferredLocation": "Default" };
+                break;
+            case 'tenants':
+                specificFields = { "budget": 500, "leaseTerm": 6, "employmentStatus": true };
+                break;
+        }
+
+        const finalPayload = { ...basePayload, ...specificFields };
+        
+        message.textContent = 'Registering...';
+        message.className = 'text-info'; // Neutral color
+
+        // --- Fetch call from original functional page ---
+        fetch(endpoint, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(finalPayload)
+        })
+        .then(response => {
+            if (response.ok) {
+                message.textContent = `Registration successful! Redirecting to login.`;
+                message.className = 'text-success'; // Green for success
+                setTimeout(() => {
+                    window.location.href = '/login'; // Redirect to login
+                }, 1500);
+            } else if (response.status === 409) {
+                // 409 Conflict is a good code for "already exists"
+                message.textContent = 'Registration failed: Email or Mobile already in use.';
+                message.className = 'text-danger'; // Red for error
+            } else {
+                // Catch other server errors
+                return response.json().then(err => {
+                    let defaultMsg = 'Please check server logs.';
+                    // Check for Spring's default validation error structure
+                    if (err.errors && Array.isArray(err.errors) && err.errors.length > 0) {
+                        defaultMsg = err.errors[0].defaultMessage;
+                    }
+                    message.textContent = `Registration failed: ${err.message || defaultMsg}`;
+                    message.className = 'text-danger';
+                }).catch(() => {
+                    // Fallback if response isn't JSON
+                    message.textContent = `Registration failed. Status: ${response.status}.`;
+                    message.className = 'text-danger';
+                });
+            }
+        })
+        .catch(error => {
+            message.textContent = 'Network error during registration. Is the server running?';
+            message.className = 'text-danger';
+            console.error('Error:', error);
         });
-    </script>
+    });
+    
+</script>
+
 </body>
 </html>
