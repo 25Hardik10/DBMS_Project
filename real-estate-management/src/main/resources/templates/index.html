@@ -463,16 +463,20 @@
                 listingsDiv.innerHTML = ''; // Clear "Loading..."
                 
                 data.forEach(property => {
-                    // --- This render logic now uses the NEW design's CSS classes ---
+                    // ✅ Determine which image to show
+                    const mainImage = (property.images && property.images.length > 0 && property.images[0].url)
+                        ? property.images[0].url
+                        : "https://placehold.co/300x200/eee/ccc/png?text=No+Image";
+
                     listingsDiv.innerHTML += `
                         <div class="property-card" onclick="window.location.href='/details?id=${property.propertyId}'">
-                            <img src="https://placehold.co/300x200/eee/ccc/png?text=${property.propertyType}" alt="${property.propertyType}">
+                            <img src="${mainImage}" alt="${property.propertyType}">
                             <div class="property-info">
                                 <span class="status">${property.propertyStatus}</span>
                                 <h4>${property.city}, ${property.state}</h4>
-                                <p>${property.description.substring(0, 70)}...</p>
+                                <p>${property.description ? property.description.substring(0, 70) + '...' : ''}</p>
                                 <span class="price">₹${property.price.toLocaleString('en-IN')}</span>
-                                <div class="seller">Listed by: ${property.seller.email}</div>
+                                <div class="seller">Listed by: ${property.seller ? property.seller.email : 'Unknown'}</div>
                                 <a href="/details?id=${property.propertyId}" class="details-link">View Details</a>
                             </div>
                         </div>

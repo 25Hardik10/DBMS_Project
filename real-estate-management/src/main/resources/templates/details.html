@@ -74,6 +74,13 @@
                         </form>
                     </div>
                 </div>
+
+                <div class="card shadow-sm mt-4">
+                    <div class="card-header bg-light">User Reviews</div>
+                    <div class="card-body" id="reviewsSection">
+                        <p class="text-muted">Loading reviews...</p>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -118,6 +125,7 @@
                     // --- FIX: This line is MOVED HERE ---
                     // Now, we call setupReviewForm *after* currentUser is set.
                     setupReviewForm(property.propertyId); 
+                    loadReviews(property.propertyId);
                 })
                 .catch(error => {
                     console.error("Error loading data:", error);
@@ -297,6 +305,30 @@
                     reviewMessage.className = "mt-2 text-danger";
                 });
             });
+        }
+        function loadReviews(propertyId) {
+            fetch(`http://localhost:8080/api/properties/${propertyId}/reviews`)
+                .then(res => res.json())
+                .then(reviews => {
+                    const section = document.getElementById('reviewsSection');
+                    if (!reviews || reviews.length === 0) {
+                        section.innerHTML = '<p class="text-muted">No reviews yet. Be the first to write one!</p>';
+                        return;
+                    }
+
+                    section.innerHTML = reviews.map(r => `
+                        <div class="border-bottom pb-2 mb-2">
+                            <p class="mb-1"><strong>${r.userName || 'Anonymous'}</strong> 
+                            <span class="text-warning">★ ${r.rating}</span></p>
+                            <p class="small mb-1">${r.comments}</p>
+                            <p class="text-muted small mb-0">${r.reviewDate}</p>
+                        </div>
+                    `).join('');
+                })
+                .catch(() => {
+                    document.getElementById('reviewsSection').innerHTML =
+                        '<p class="text-danger">Failed to load reviews.</p>';
+                });
         }
     </script>
 </body>

@@ -1,6 +1,7 @@
 package com.realestate.real_estate_management.service;
 
 import com.realestate.real_estate_management.dto.ReviewRequest;
+import com.realestate.real_estate_management.dto.ReviewResponseDTO;
 import com.realestate.real_estate_management.entity.Property;
 import com.realestate.real_estate_management.entity.Review;
 import com.realestate.real_estate_management.entity.ReviewKey;
@@ -14,6 +15,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.List;
 
 @Service
 @Transactional
@@ -59,6 +62,18 @@ public class ReviewService {
         newReview.setReviewDate(LocalDate.now());
 
         return reviewRepository.save(newReview);
+    }
+
+    public List<ReviewResponseDTO> getReviewsByProperty(Long propertyId) {
+        return reviewRepository.findByProperty_PropertyId(propertyId)
+                .stream()
+                .map(review -> new ReviewResponseDTO(
+                        review.getUser().getFname() + " " + review.getUser().getLname(), // 👈 user full name
+                        review.getRating(),
+                        review.getComments(),
+                        review.getReviewDate()
+                ))
+                .collect(Collectors.toList());
     }
 
     // keep addOrUpdateReview if you want updates; ensure ReviewKey order here too

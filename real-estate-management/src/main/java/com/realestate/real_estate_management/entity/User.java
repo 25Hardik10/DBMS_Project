@@ -1,14 +1,7 @@
 package com.realestate.real_estate_management.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Inheritance;
-import jakarta.persistence.InheritanceType;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import java.time.LocalDate;
 
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
@@ -19,22 +12,22 @@ public class User {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "UserID") 
+    @Column(name = "UserID")
     private Long userId;
 
-    @Column(name = "Fname", nullable = false) 
+    @Column(name = "Fname", nullable = false)
     private String firstName;
 
     @Column(name = "Mname")
     private String middleName;
 
-    @Column(name = "Lname") 
+    @Column(name = "Lname")
     private String lastName;
 
-    @Column(name = "Email", nullable = false, unique = true) 
+    @Column(name = "Email", nullable = false, unique = true)
     private String email;
 
-    @Column(name = "Mobile", nullable = false, unique = true, length = 10) 
+    @Column(name = "Mobile", nullable = false, unique = true, length = 10)
     private String mobile;
 
     @Column(name = "Passwrd", nullable = false)
@@ -45,6 +38,8 @@ public class User {
 
     public User() {
     }
+
+    // ------------------ Getters and Setters ------------------
 
     public Long getUserId() {
         return userId;
@@ -109,5 +104,15 @@ public class User {
     public void setCreatedOn(LocalDate createdOn) {
         this.createdOn = createdOn;
     }
-    
+
+    // ------------------ Extra helper methods for DTO compatibility ------------------
+
+    /** ✅ For ReviewResponseDTO and similar code */
+    public String getFname() {
+        return firstName;
+    }
+
+    public String getLname() {
+        return lastName;
+    }
 }
